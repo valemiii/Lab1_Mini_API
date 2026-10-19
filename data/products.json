@@ -1,4 +1,23 @@
 [
-  { "id": 1, "name": "Café americano", "price": 2.5, "stock": 40, "category": "bebidas" },
-  { "id": 2, "name": "Té verde", "price": 1.8, "stock": 25, "category": "bebidas" }
+  {
+    "id": 1,
+    "name": "Camiseta Polo T34 Alvernia",
+    "institution": "Alvernia",
+    "category": "Uniforme diario",
+    "price": 10
+  },
+  {
+    "id": 2,
+    "name": "Chompa de Calentador T34",
+    "institution": "Alvernia",
+    "category": "Uniforme deportivo",
+    "price": 17
+  },
+  {
+    "id": 3,
+    "name": "Pantalon T34",
+    "institution": "Alvernia",
+    "category": "Uniforme diario",
+    "price": 20
+  }
 ]

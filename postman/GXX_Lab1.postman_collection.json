@@ -70,7 +70,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"name\": \"Capuchino\",\n  \"price\": 3.2,\n  \"stock\": 15,\n  \"category\": \"bebidas\"\n}",
+          "raw": "{\n  \"name\": \"Camiseta Polo T34 Alvernia\",\n  \"institution\": \"Alvernia\",\n  \"category\": \"Uniforme diario\",\n  \"price\": 10\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -118,7 +118,7 @@
             "type": "text/javascript",
             "exec": [
               "pm.test(\"200 OK\", () => pm.response.to.have.status(200));",
-              "pm.test(\"Precio actualizado\", () => pm.expect(pm.response.json().price).to.eql(3.5));"
+              "pm.test(\"Precio actualizado\", () => pm.expect(pm.response.json().price).to.eql(11));"
             ]
           }
         }
@@ -144,7 +144,7 @@
         },
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"price\": 3.5\n}",
+          "raw": "{\n  \"price\": 11\n}",
           "options": {
             "raw": {
               "language": "json"
