@@ -1,9 +1,16 @@
-// TODO Paso 3: registra hora, verbo y ruta de cada petición (diapositiva «Los middlewares…»)
-// Reto opcional: registra también el código de estado y la duración usando res.on("finish", ...)
+// Registra cada petición cuando termina para incluir su estado HTTP y duración.
 const logger = (req, res, next) => {
-  // Escribe aquí tu console.log(...)
+  const startedAt = process.hrtime.bigint();
+  const timestamp = new Date().toISOString();
 
-  next(); // no lo borres: sin next() la petición se queda colgada
+  res.on("finish", () => {
+    const durationMs = Number(process.hrtime.bigint() - startedAt) / 1e6;
+    console.log(
+      `[${timestamp}] ${req.method} ${req.originalUrl} ${res.statusCode} ${durationMs.toFixed(1)} ms`,
+    );
+  });
+
+  next();
 };
 
 module.exports = logger;
