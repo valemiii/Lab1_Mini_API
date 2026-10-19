@@ -1,0 +1,4 @@
+[
+  { "id": 1, "name": "Café americano", "price": 2.5, "stock": 40, "category": "bebidas" },
+  { "id": 2, "name": "Té verde", "price": 1.8, "stock": 25, "category": "bebidas" }
+]
