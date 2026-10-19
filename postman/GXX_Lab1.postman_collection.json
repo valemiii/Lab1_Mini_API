@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "GXX_Lab1 · Mini-API MVC",
-    "description": "Colección del Laboratorio 1 (Desarrollo Web Avanzado). Renombra GXX con tu número de grupo y /api/products con la ruta de tu entidad. Ejecuta las peticiones en orden (Run collection).",
+    "description": "Pruebas de middlewares del Laboratorio 1: logging HTTP, JSON mal formado (400), recursos inexistentes (404) y rutas inexistentes (404).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -35,168 +35,6 @@
       }
     },
     {
-      "name": "2. Crear producto",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"201 Created\", () => pm.response.to.have.status(201));",
-              "const item = pm.response.json();",
-              "pm.test(\"Tiene id\", () => pm.expect(item.id).to.exist);",
-              "pm.collectionVariables.set(\"id\", item.id);"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "url": {
-          "raw": "{{baseUrl}}/api/products",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "products"
-          ]
-        },
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"name\": \"Camiseta Polo T34 Alvernia\",\n  \"institution\": \"Alvernia\",\n  \"category\": \"Uniforme diario\",\n  \"price\": 10\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        }
-      }
-    },
-    {
-      "name": "3. Ver un producto",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"200 OK\", () => pm.response.to.have.status(200));",
-              "pm.test(\"Es el creado\", () => pm.expect(pm.response.json().id).to.eql(Number(pm.collectionVariables.get(\"id\"))));"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{baseUrl}}/api/products/{{id}}",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "products",
-            "{{id}}"
-          ]
-        }
-      }
-    },
-    {
-      "name": "4. Actualizar producto",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"200 OK\", () => pm.response.to.have.status(200));",
-              "pm.test(\"Precio actualizado\", () => pm.expect(pm.response.json().price).to.eql(11));"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "PUT",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "url": {
-          "raw": "{{baseUrl}}/api/products/{{id}}",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "products",
-            "{{id}}"
-          ]
-        },
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"price\": 11\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        }
-      }
-    },
-    {
-      "name": "5. Crear con datos inválidos (400)",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "type": "text/javascript",
-            "exec": [
-              "pm.test(\"400 Bad Request\", () => pm.response.to.have.status(400));",
-              "pm.test(\"Mensaje de error en JSON\", () => pm.expect(pm.response.json().error).to.be.a(\"string\"));"
-            ]
-          }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "url": {
-          "raw": "{{baseUrl}}/api/products",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            "api",
-            "products"
-          ]
-        },
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"name\": \"\",\n  \"price\": -1\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        }
-      }
-    },
-    {
       "name": "6. Producto inexistente (404)",
       "event": [
         {
@@ -226,43 +64,58 @@
       }
     },
     {
-      "name": "7. Eliminar producto",
+      "name": "9. JSON mal formado (400)",
       "event": [
         {
           "listen": "test",
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test(\"204 No Content\", () => pm.response.to.have.status(204));"
+              "pm.test(\"400 Bad Request para JSON mal formado\", () => pm.response.to.have.status(400));",
+              "pm.test(\"Devuelve error JSON\", () => pm.expect(pm.response.json().error).to.be.a(\"string\"));"
             ]
           }
         }
       ],
       "request": {
-        "method": "DELETE",
-        "header": [],
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\": \"Producto",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
         "url": {
-          "raw": "{{baseUrl}}/api/products/{{id}}",
+          "raw": "{{baseUrl}}/api/products",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
             "api",
-            "products",
-            "{{id}}"
+            "products"
           ]
         }
       }
     },
     {
-      "name": "8. Verificar eliminación (404)",
+      "name": "10. Ruta inexistente (404)",
       "event": [
         {
           "listen": "test",
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test(\"404 Not Found\", () => pm.response.to.have.status(404));"
+              "pm.test(\"404 Not Found para ruta inexistente\", () => pm.response.to.have.status(404));",
+              "pm.test(\"Devuelve error JSON\", () => pm.expect(pm.response.json().error).to.be.a(\"string\"));"
             ]
           }
         }
@@ -271,14 +124,13 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/api/products/{{id}}",
+          "raw": "{{baseUrl}}/api/ruta-inexistente",
           "host": [
             "{{baseUrl}}"
           ],
           "path": [
             "api",
-            "products",
-            "{{id}}"
+            "ruta-inexistente"
           ]
         }
       }
