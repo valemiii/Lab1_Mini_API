@@ -88,9 +88,9 @@ Flujo de las peticiones: **ruta → controlador → servicio → modelo**. El pr
 
 ## Probar la API
 
-Importa `postman/GXX_Lab1.postman_collection.json` en Postman. Mientras se completa el CRUD, ejecuta únicamente las peticiones GET para listar productos y consultar un producto. Las demás peticiones de la colección corresponden a operaciones aún pendientes.
+Importar `postman/GXX_Lab1.postman_collection.json` en Postman. Mientras se completa el CRUD, ejecuta únicamente las peticiones GET para listar productos y consultar un producto. Las demás peticiones de la colección corresponden a operaciones aún pendientes.
 
-También puedes probar desde PowerShell:
+Desde PowerShell:
 
 ```powershell
 Invoke-RestMethod http://localhost:3000/api/products
@@ -99,7 +99,7 @@ Invoke-RestMethod http://localhost:3000/api/products/1
 
 ## Trabajo pendiente del equipo
 
-- Acordar con **Samuel (persona 2)** las dos validaciones del producto antes de implementarlas.
+- Acordar con **Samuel** las dos validaciones del producto antes de implementarlas.
 - Completar las operaciones POST, PUT y DELETE de acuerdo con el flujo MVC existente.
 - Confirmar el número oficial de WhatsApp antes de incluirlo en la aplicación.
 
@@ -109,16 +109,15 @@ Completar estos datos con el equipo:
 
 | Dato | Valor |
 |---|---|
-| Grupo | GXX |
-| Integrantes | 1. ___ · 2. Samuel · 3. ___ · 4. ___ |
-| NRC | ___ |
-| Fecha | ___ |
+| Grupo | G1 |
+| Integrantes | 1. Samuel Dávalos · 2. Valeria Guaiguacundo · 3. Brithany López · 4. Daniel Palacios | 
+| NRC | 36878 |
+| Fecha | 19/10/2026 |
 | Repositorio | [Lab1_Mini_API](https://github.com/valemiii/Lab1_Mini_API) |
 
 ## Declaración de uso de IA
 
-Completar en equipo antes de entregar:
 
-- Herramienta(s) usada(s):
-- Para qué se usó (consulta, depuración, explicación, etc.):
-- Qué verificó o corrigió el equipo:
+- Herramienta(s) usada(s): Copilot, Claude AI, ChatGPT
+- Para qué se usó: Consulta, depuración, uso de comandos
+- Qué verificó o corrigió el equipo: Métodos de enrutamiento, CRUD e información del emprendimiento
