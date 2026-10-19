@@ -7,9 +7,20 @@ const HttpError = require("../utils/httpError");
 
 // Devuelve un mensaje de error o null si los datos son válidos.
 // partial = true en PUT: valida solo los campos que llegan.
-// TODO Paso 1: al menos 2 validaciones de TU entidad.
 const validate = (data, { partial = false } = {}) => {
-  // Ejemplo: if (typeof data.name !== "string" || data.name.trim().length < 3) return "name ...";
+  if (data === null || typeof data !== "object" || Array.isArray(data)) {
+    return "Los datos del producto deben ser un objeto";
+  }
+  if (!partial || data.name !== undefined) {
+    if (typeof data.name !== "string" || data.name.trim().length < 3) {
+      return "name debe tener al menos 3 caracteres";
+    }
+  }
+  if (!partial || data.price !== undefined) {
+    if (typeof data.price !== "number" || Number.isNaN(data.price) || data.price < 0) {
+      return "price debe ser un número mayor o igual a 0";
+    }
+  }
   return null;
 };
 
@@ -23,19 +34,39 @@ const getById = async (id) => {
   return item;
 };
 
-// TODO Paso 2: valida (400), genera el id (máximo + 1), agrega el registro con Product.pick, guarda y devuélvelo
 const create = async (data) => {
-  throw new HttpError(501, "create() pendiente en el servicio");
+  const error = validate(data);
+  if (error) throw new HttpError(400, error);
+
+  const items = await Product.readAll();
+  const id = items.reduce((maxId, item) => Math.max(maxId, item.id), 0) + 1;
+  const item = { ...Product.pick(data), id };
+  items.push(item);
+  await Product.writeAll(items);
+  return item;
 };
 
-// TODO Paso 2: valida con { partial: true } (400); si el id no existe lanza 404; mezcla los campos, guarda y devuélvelo
 const update = async (id, data) => {
-  throw new HttpError(501, "update() pendiente en el servicio");
+  const error = validate(data, { partial: true });
+  if (error) throw new HttpError(400, error);
+
+  const items = await Product.readAll();
+  const index = items.findIndex((item) => item.id === id);
+  if (index === -1) throw new HttpError(404, "Producto no encontrado");
+
+  const item = { ...items[index], ...Product.pick(data), id: items[index].id };
+  items[index] = item;
+  await Product.writeAll(items);
+  return item;
 };
 
-// TODO Paso 2: elimina por id; si no existía lanza 404
 const remove = async (id) => {
-  throw new HttpError(501, "remove() pendiente en el servicio");
+  const items = await Product.readAll();
+  const remainingItems = items.filter((item) => item.id !== id);
+  if (remainingItems.length === items.length) {
+    throw new HttpError(404, "Producto no encontrado");
+  }
+  await Product.writeAll(remainingItems);
 };
 
 module.exports = { list, getById, create, update, remove };
