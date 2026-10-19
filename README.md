@@ -97,11 +97,6 @@ Invoke-RestMethod http://localhost:3000/api/products
 Invoke-RestMethod http://localhost:3000/api/products/1
 ```
 
-## Trabajo pendiente del equipo
-
-- Acordar con **Samuel** las dos validaciones del producto antes de implementarlas.
-- Completar las operaciones POST, PUT y DELETE de acuerdo con el flujo MVC existente.
-- Confirmar el número oficial de WhatsApp antes de incluirlo en la aplicación.
 
 ## Integrantes y datos del curso
 
