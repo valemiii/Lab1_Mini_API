@@ -7,7 +7,8 @@ const router = Router();
 // ✅ Ya resueltas
 router.get("/", productController.list);
 router.get("/:id", productController.getById);
-
-// TODO Paso 2: agrega POST "/" → create, PUT "/:id" → update y DELETE "/:id" → remove
+router.post("/", productController.create);
+router.put("/:id", productController.update);
+router.delete("/:id", productController.remove);
 
 module.exports = router;

@@ -28,19 +28,31 @@ const getById = async (req, res, next) => {
   }
 };
 
-// TODO Paso 2: POST / → llama a productService.create(req.body ?? {}) y responde 201 con el registro
 const create = async (req, res, next) => {
-  next(new HttpError(501, "create pendiente en el controlador"));
+  try {
+    const item = await productService.create(req.body ?? {});
+    res.status(201).json(item);
+  } catch (err) {
+    next(err);
+  }
 };
 
-// TODO Paso 2: PUT /:id → llama a productService.update(parseId(req), req.body ?? {}) y responde 200
 const update = async (req, res, next) => {
-  next(new HttpError(501, "update pendiente en el controlador"));
+  try {
+    const item = await productService.update(parseId(req), req.body ?? {});
+    res.json(item);
+  } catch (err) {
+    next(err);
+  }
 };
 
-// TODO Paso 2: DELETE /:id → llama a productService.remove(parseId(req)) y responde 204 sin cuerpo (res.status(204).end())
 const remove = async (req, res, next) => {
-  next(new HttpError(501, "remove pendiente en el controlador"));
+  try {
+    await productService.remove(parseId(req));
+    res.status(204).end();
+  } catch (err) {
+    next(err);
+  }
 };
 
 module.exports = { list, getById, create, update, remove };
