@@ -75,14 +75,14 @@ Importa `postman/GXX_Lab1.postman_collection.json` y ejecuta **Run collection** 
 
 ## Aporte del equipo
 
-Completar con el aporte real de cada integrante antes de entregar.
+Resumen elaborado a partir de los commits disponibles. Para los aportes registrados bajo nombres de usuario de GitHub, el equipo debe confirmar quién es la persona correspondiente.
 
 | Integrante | Qué hizo (archivos / pasos) |
 |---|---|
-| Samuel Dávalos | Completar |
-| Valeria Guaiguacundo | Completar |
-| Brithany López | Completar |
-| Daniel Palacios | Completar |
+| Samuel Dávalos | Implementación de `create`, `update`, `remove` y validaciones en `src/services/product.service.js` (commit `67d0c48`, cuyo mensaje lo identifica como trabajo de persona 2). |
+| Valeria Guaiguacundo | La propuesta del emprendimiento, el modelo y los datos iniciales constan en el commit `bca2f55`, registrado por `valemiii`; confirmar que esa cuenta le corresponde. |
+| Brithany López | Logger, manejo de errores y colección base de Postman constan en el commit `0ef8c2f`, registrado por `Brii28ELM`; confirmar que esa cuenta le corresponde. |
+| Daniel Palacios | El historial disponible no identifica con certeza un aporte individual; completar esta fila con sus tareas verificadas por el equipo. |
 
 ## Declaración de uso de IA
 
