@@ -75,14 +75,12 @@ Importa `postman/GXX_Lab1.postman_collection.json` y ejecuta **Run collection** 
 
 ## Aporte del equipo
 
-Resumen elaborado a partir de los commits disponibles. Para los aportes registrados bajo nombres de usuario de GitHub, el equipo debe confirmar quién es la persona correspondiente.
-
 | Integrante | Qué hizo (archivos / pasos) |
 |---|---|
-| Samuel Dávalos | Implementación de `create`, `update`, `remove` y validaciones en `src/services/product.service.js` (commit `67d0c48`, cuyo mensaje lo identifica como trabajo de persona 2). |
-| Valeria Guaiguacundo | La propuesta del emprendimiento, el modelo y los datos iniciales constan en el commit `bca2f55`, registrado por `valemiii`; confirmar que esa cuenta le corresponde. |
-| Brithany López | Logger, manejo de errores y colección base de Postman constan en el commit `0ef8c2f`, registrado por `Brii28ELM`; confirmar que esa cuenta le corresponde. |
-| Daniel Palacios | El historial disponible no identifica con certeza un aporte individual; completar esta fila con sus tareas verificadas por el equipo. |
+| Valeria Guaiguacundo · Persona 1 | Propuesta del emprendimiento y mapa frontend–backend en `PROPUESTA.md`; modelo adaptado en `src/models/product.model.js`; datos de ejemplo en `data/products.json`. |
+| Samuel Dávalos · Persona 2 | Servicio `src/services/product.service.js`, operaciones `create`, `update` y `remove`, validaciones y manejo de errores 400 y 404. |
+| Daniel Palacios · Persona 3 | Controlador `src/controllers/product.controller.js`, cinco endpoints conectados en `src/routes/product.routes.js` y montaje de rutas en `src/routes/index.js`. |
+| Brithany López · Persona 4 | Logger y manejador de errores en `src/middlewares/`; colección CRUD y casos de error en `postman/GXX_Lab1.postman_collection.json`. Las capturas `evidencias/logger.png` y `evidencias/postman-run.png` aún deben agregarse después de ejecutar y verificar la API y la colección. |
 
 ## Declaración de uso de IA
 
