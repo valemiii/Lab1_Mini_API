@@ -75,14 +75,12 @@ Importa `postman/GXX_Lab1.postman_collection.json` y ejecuta **Run collection** 
 
 ## Aporte del equipo
 
-Completar con el aporte real de cada integrante antes de entregar.
-
 | Integrante | Qué hizo (archivos / pasos) |
 |---|---|
-| Samuel Dávalos | Completar |
-| Valeria Guaiguacundo | Completar |
-| Brithany López | Completar |
-| Daniel Palacios | Completar |
+| Valeria Guaiguacundo · Persona 1 | Propuesta del emprendimiento y mapa frontend–backend en `PROPUESTA.md`; modelo adaptado en `src/models/product.model.js`; datos de ejemplo en `data/products.json`. |
+| Samuel Dávalos · Persona 2 | Servicio `src/services/product.service.js`, operaciones `create`, `update` y `remove`, validaciones y manejo de errores 400 y 404. |
+| Daniel Palacios · Persona 3 | Controlador `src/controllers/product.controller.js`, cinco endpoints conectados en `src/routes/product.routes.js` y montaje de rutas en `src/routes/index.js`. |
+| Brithany López · Persona 4 | Logger y manejador de errores en `src/middlewares/`; colección CRUD y casos de error en `postman/GXX_Lab1.postman_collection.json`. Las capturas `evidencias/logger.png` y `evidencias/postman-run.png` aún deben agregarse después de ejecutar y verificar la API y la colección. |
 
 ## Declaración de uso de IA
 
