@@ -36,23 +36,28 @@ flowchart LR
 
 La página muestra, entre otras, las instituciones Alvernia y FAE N.º 1, con categorías de uniforme diario, uniforme deportivo y accesorios. En el modelo JSON del Lab 1, `institution` se guarda como nombre; la relación formal con una entidad Institución queda planteada para los siguientes laboratorios.
 
-## 3 endpoints iniciales
+## Endpoints CRUD
 
 | Verbo | Ruta | Código de estado esperado | Uso |
 |---|---|---|---|
 | GET | `/api/products` | 200 | Listar productos del catálogo. |
-| GET | `/api/products/:id` | 200 | Consultar un producto por su identificador. |
-| POST | `/api/products` | 201 | Agregar un producto al catálogo. |
+| GET | `/api/products/:id` | 200 | Consultar un producto por su identificador; 400 si el id no es numérico y 404 si no existe. |
+| POST | `/api/products` | 201 | Agregar un producto; 400 si no cumple las validaciones. |
+| PUT | `/api/products/:id` | 200 | Actualizar campos enviados; 400 por id/datos inválidos y 404 si no existe. |
+| DELETE | `/api/products/:id` | 204 | Eliminar sin cuerpo; 400 por id inválido y 404 si no existe. |
 
-Los dos GET ya existen en la plantilla. POST queda propuesto para el siguiente paso del laboratorio; aún no está implementado.
+Las cinco operaciones están conectadas por rutas y controladores y delegan la persistencia al servicio y al modelo JSON.
 
 ## Modelo y datos iniciales
 
 El modelo principal es Producto y su archivo de datos es `data/products.json`. Los registros de ejemplo reflejan productos y precios visibles en el catálogo público al momento de la consulta; no representan inventario confirmado.
 
-## Validaciones pendientes
+## Validaciones del servicio
 
-**Samuel (persona 2) y el equipo debemos ponernos de acuerdo sobre las dos validaciones de Producto antes de implementarlas.** Aún no se han definido.
+1. `name` debe ser texto con al menos 3 caracteres; es obligatorio al crear.
+2. `price` debe ser un número mayor o igual a cero; es obligatorio al crear.
+
+En actualizaciones parciales se validan los campos presentes. Los errores de validación responden 400 con `{ "error": "..." }`.
 
 ## Referencia
 
