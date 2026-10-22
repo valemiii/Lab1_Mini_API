@@ -12,9 +12,9 @@ const errorHandler = require("./middlewares/errorHandler");
 
 const app = express();
 
-// 1. Middlewares que actúan ANTES del controlador
-app.use(express.json()); // reemplaza a body-parser: llena req.body con el JSON recibido
+// El logger precede al parser para registrar también solicitudes con JSON inválido.
 app.use(logger);
+app.use(express.json()); // reemplaza a body-parser: llena req.body con el JSON recibido
 
 // 2. Rutas: todas cuelgan del prefijo /api (ver routes/index.js)
 app.get("/", (req, res) => res.json({ api: "Lab 1 · Mini-API MVC", estado: "ok" }));

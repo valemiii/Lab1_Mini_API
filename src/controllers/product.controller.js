@@ -10,19 +10,19 @@ const parseId = (req) => {
   return id;
 };
 
-// ✅ Ya resuelto: GET / → 200
+// get 200
 const list = async (req, res, next) => {
   try {
-    res.json(await productService.list()); // 200
+    res.json(await productService.list());
   } catch (err) {
     next(err);
   }
 };
 
-// ✅ Ya resuelto: GET /:id → 200 (el servicio lanza 404 si no existe)
+// get 200
 const getById = async (req, res, next) => {
   try {
-    res.json(await productService.getById(parseId(req))); // 200
+    res.json(await productService.getById(parseId(req)));
   } catch (err) {
     next(err);
   }
@@ -40,7 +40,7 @@ const create = async (req, res, next) => {
 const update = async (req, res, next) => {
   try {
     const item = await productService.update(parseId(req), req.body ?? {});
-    res.json(item); // 200
+    res.json(item);
   } catch (err) {
     next(err);
   }

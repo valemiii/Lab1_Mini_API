@@ -1,123 +1,93 @@
-# Laboratorio 1 · Catálogo de uniformes APDAF SPORT
+# Laboratorio 1 · Mini-API MVC con CRUD
 
-Mini-API REST desarrollada para **Desarrollo Web Avanzado (A0R04), ESPE**. El proyecto adapta la plantilla MVC del laboratorio para administrar productos de uniformes escolares inspirados en el catálogo público de [APDAF SPORT](https://apdafsport.com/).
+**Desarrollo Web Avanzado (A0R04) · ESPE · Unidad 1: Persistencia de datos y ORM**
 
-La propuesta del emprendimiento, el mapa frontend–backend, las entidades y los endpoints iniciales están documentados en [`PROPUESTA.md`](./PROPUESTA.md).
+| Dato | Valor |
+|---|---|
+| Grupo | G1 |
+| Emprendimiento | Catálogo y pedidos de uniformes escolares APDAF SPORT |
+| Integrantes | 1. Samuel Dávalos · 2. Valeria Guaiguacundo · 3. Brithany López · 4. Daniel Palacios |
+| NRC | 36878 |
+| Fecha | 19/10/2026 |
+| Repositorio | [Lab1_Mini_API](https://github.com/valemiii/Lab1_Mini_API) |
 
-> Los productos y precios de `data/products.json` son ejemplos basados en el catálogo visible al preparar el laboratorio; no representan inventario confirmado. El número de WhatsApp está pendiente de confirmar: la página indica que el canal está en configuración.
+## Descripción
 
-## Requisitos
+Mini-API REST para administrar productos de un catálogo de uniformes escolares inspirado en APDAF SPORT. Los productos y precios de `data/products.json` son ejemplos basados en el catálogo público y no representan inventario confirmado. El número de WhatsApp está pendiente de confirmar.
+
+## Requisitos e instalación
 
 - Node.js 20 o superior
 - npm
-
-## Instalación y ejecución
-
-Desde la carpeta raíz del proyecto:
 
 ```bash
 npm ci
 ```
 
-Opcionalmente, crea el archivo local `.env` a partir del ejemplo. En PowerShell:
-
-```powershell
-Copy-Item .env.example .env
-```
-
-En macOS o Linux:
-
-```bash
-cp .env.example .env
-```
-
-Inicia el servidor en modo desarrollo:
+Opcionalmente, copia `.env.example` a `.env` (en PowerShell: `Copy-Item .env.example .env`; en macOS/Linux: `cp .env.example .env`). Inicia el servidor:
 
 ```bash
 npm run dev
 ```
 
-La API queda disponible en `http://localhost:3000`. La ruta raíz `GET /` devuelve el estado básico de la aplicación. La variable `PORT` permite cambiar el puerto; `DATA_FILE` indica el archivo JSON usado por el modelo.
+La API queda disponible en `http://localhost:3000`. `GET /` devuelve el estado básico; `PORT` configura el puerto y `DATA_FILE` la ruta del archivo JSON.
 
-## Estado de los endpoints
+## Endpoints
 
-Los endpoints implementados actualmente son:
+| Verbo | Ruta | Acción | Éxito | Errores |
+|---|---|---|---|---|
+| GET | `/api/products` | Listar productos | 200 | 500 |
+| GET | `/api/products/:id` | Consultar uno | 200 | 400, 404 |
+| POST | `/api/products` | Crear producto | 201 | 400 |
+| PUT | `/api/products/:id` | Actualizar campos enviados | 200 | 400, 404 |
+| DELETE | `/api/products/:id` | Eliminar sin cuerpo | 204 | 400, 404 |
 
-| Verbo | Ruta | Estado | Descripción |
-|---|---|---|---|
-| GET | `/api/products` | Implementado · 200 | Lista los productos del catálogo. |
-| GET | `/api/products/:id` | Implementado · 200 | Consulta un producto por su identificador; responde 400 si el ID no es numérico y 404 si no existe. |
+Las rutas inexistentes responden 404 JSON y el JSON mal formado responde 400 JSON. Los errores internos responden 500; su stack solo se incluye fuera de producción.
 
-La propuesta también contempla `POST /api/products` (201) para agregar productos. La creación, actualización (`PUT`) y eliminación (`DELETE`) aún están pendientes en los controladores, servicios y rutas; por eso, las peticiones CRUD correspondientes de la colección Postman todavía no se pueden ejecutar con éxito.
+## Validaciones
 
-## Modelo y datos de ejemplo
+1. `name` es obligatorio al crear y debe ser texto con al menos 3 caracteres.
+2. `price` es obligatorio al crear y debe ser un número mayor o igual a cero.
 
-La entidad principal del laboratorio es **Producto**, definida por estos campos:
+En PUT esos campos se validan solo si están presentes. Los IDs deben ser numéricos y el registro debe existir para consultar, actualizar o eliminar.
 
-| Campo | Descripción |
-|---|---|
-| `id` | Identificador numérico del producto. |
-| `name` | Nombre de la prenda o accesorio. |
-| `institution` | Institución a cuyo catálogo pertenece. |
-| `category` | Categoría del producto, por ejemplo uniforme diario o deportivo. |
-| `price` | Precio de ejemplo en dólares estadounidenses. |
+## Arquitectura y datos
 
-Los registros iniciales están en [`data/products.json`](./data/products.json). El modelo [`src/models/product.model.js`](./src/models/product.model.js) limita los campos que se aceptan al guardar un producto.
-
-Las otras entidades planteadas para los siguientes laboratorios son **Institución** y **Pedido**; sus relaciones propuestas están descritas en [`PROPUESTA.md`](./PROPUESTA.md).
-
-## Estructura del proyecto
+El flujo de una petición es **ruta → controlador → servicio → modelo**. El controlador delega la lógica de negocio y no lee archivos; el servicio aplica validaciones y el modelo persiste en JSON. El proyecto utiliza CommonJS (`require` / `module.exports`). En el Laboratorio 2, el almacenamiento JSON se reemplazará por Prisma.
 
 ```text
 src/
-├── app.js                 # Configura Express, middlewares y prefijo /api
-├── server.js              # Carga .env e inicia el servidor
-├── routes/                # Rutas de la API
-├── controllers/           # Peticiones HTTP y respuestas
-├── services/              # Lógica de negocio y acceso a datos
-├── models/                # Campos y persistencia JSON
-├── middlewares/           # Registro, errores y rutas no encontradas
-└── utils/                 # Utilidades, como HttpError
-data/
-└── products.json          # Datos de ejemplo
-postman/
-└── GXX_Lab1.postman_collection.json
+├── app.js                 Configura Express, middlewares y prefijo /api
+├── server.js              Carga .env e inicia el servidor
+├── routes/                Rutas HTTP de la API
+├── controllers/           Lectura de petición y respuestas HTTP
+├── services/              Reglas de negocio y validaciones
+├── models/                Campos y persistencia JSON
+├── middlewares/           Logger, notFound y errorHandler
+└── utils/httpError.js     Error con estado HTTP
+data/products.json         Productos de ejemplo
+postman/                   Colección de pruebas
 ```
 
-Flujo de las peticiones: **ruta → controlador → servicio → modelo**. El proyecto usa CommonJS (`require` y `module.exports`). En el Laboratorio 2, la persistencia JSON se reemplazará por Prisma.
+## Pruebas en Postman
 
-## Probar la API
+Importa `postman/GXX_Lab1.postman_collection.json` y ejecuta **Run collection** con el servidor activo. La colección contiene 13 solicitudes para CRUD, validaciones y errores. Ejecuta las solicitudes en orden: la creación guarda `createdId` como variable de colección para que actualización y eliminación usen el registro creado.
 
-Importar `postman/GXX_Lab1.postman_collection.json` en Postman. Mientras se completa el CRUD, ejecuta únicamente las peticiones GET para listar productos y consultar un producto. Las demás peticiones de la colección corresponden a operaciones aún pendientes.
+## Aporte del equipo
 
-Desde PowerShell:
-
-```powershell
-Invoke-RestMethod http://localhost:3000/api/products
-Invoke-RestMethod http://localhost:3000/api/products/1
-```
-
-## Trabajo pendiente del equipo
-
-- Acordar con **Samuel** las dos validaciones del producto antes de implementarlas.
-- Completar las operaciones POST, PUT y DELETE de acuerdo con el flujo MVC existente.
-- Confirmar el número oficial de WhatsApp antes de incluirlo en la aplicación.
-
-## Integrantes y datos del curso
-
-Completar estos datos con el equipo:
-
-| Dato | Valor |
+| Integrante | Qué hizo (archivos / pasos) |
 |---|---|
-| Grupo | G1 |
-| Integrantes | 1. Samuel Dávalos · 2. Valeria Guaiguacundo · 3. Brithany López · 4. Daniel Palacios | 
-| NRC | 36878 |
-| Fecha | 19/10/2026 |
-| Repositorio | [Lab1_Mini_API](https://github.com/valemiii/Lab1_Mini_API) |
+| Valeria Guaiguacundo · Persona 1 | Propuesta del emprendimiento y mapa frontend–backend en `PROPUESTA.md`; modelo adaptado en `src/models/product.model.js`; datos de ejemplo en `data/products.json`. |
+| Samuel Dávalos · Persona 2 | Servicio `src/services/product.service.js`, operaciones `create`, `update` y `remove`, validaciones y manejo de errores 400 y 404. |
+| Daniel Palacios · Persona 3 | Controlador `src/controllers/product.controller.js`, cinco endpoints conectados en `src/routes/product.routes.js` y montaje de rutas en `src/routes/index.js`. |
+| Brithany López · Persona 4 | Logger y manejador de errores en `src/middlewares/`; colección CRUD y casos de error en `postman/GXX_Lab1.postman_collection.json`. Las capturas `evidencias/logger.png` y `evidencias/postman-run.png` aún deben agregarse después de ejecutar y verificar la API y la colección. |
 
 ## Declaración de uso de IA
 
+- Herramientas usadas: Copilot, Claude AI y ChatGPT.
+- Uso declarado por el equipo: consulta, depuración y ayuda con comandos.
+- Verificación declarada por el equipo: métodos de enrutamiento, CRUD e información del emprendimiento.
 
-- Herramienta(s) usada(s): Copilot, Claude AI, ChatGPT
-- Para qué se usó: Consulta, depuración, uso de comandos
-- Qué verificó o corrigió el equipo: Métodos de enrutamiento, CRUD e información del emprendimiento
+## Entrega
+
+Antes de comprimir, confirma el nombre final solicitado para el ZIP (formato `G1_Lab1_<Emprendimiento>`), completa los aportes, ejecuta la colección y agrega las capturas reales en `evidencias/`. El ZIP debe incluir el código, `PROPUESTA.md`, este README y evidencias, sin `node_modules/` ni `.env`.
