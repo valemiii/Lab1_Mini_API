@@ -32,16 +32,28 @@ const run = async () => {
     ["POST", "/api/ruta-inexistente", {}, 404],
   ];
 
-  for (const [method, path, body, expected] of checks) {
-    const result = await request(method, path, body);
-    assert.equal(result.status, expected, `${method} ${path}: se esperaba ${expected}, llegó ${result.status}`);
+  let smokeId;
+  try {
+    for (const [method, path, body, expected] of checks) {
+      const result = await request(method, path, body);
+      assert.equal(result.status, expected, `${method} ${path}: se esperaba ${expected}, llegó ${result.status}`);
+      if (result.status === 201 && method === "POST" && path === "/api/products") {
+        smokeId = JSON.parse(result.text).id;
+      }
+    }
+
+    const created = await request("POST", "/api/products", { name: "Prueba eliminar", institution: "QA", category: "Test", price: 2 });
+    const id = JSON.parse(created.text).id;
+    const removed = await request("DELETE", `/api/products/${id}`);
+    assert.equal(removed.status, 204);
+    assert.equal(removed.text, "");
+  } finally {
+    if (smokeId !== undefined) {
+      const removed = await request("DELETE", `/api/products/${smokeId}`);
+      assert.equal(removed.status, 204);
+    }
   }
 
-  const created = await request("POST", "/api/products", { name: "Prueba eliminar", institution: "QA", category: "Test", price: 2 });
-  const id = JSON.parse(created.text).id;
-  const removed = await request("DELETE", `/api/products/${id}`);
-  assert.equal(removed.status, 204);
-  assert.equal(removed.text, "");
   console.log(`Smoke test OK: ${checks.length + 2} escenarios verificados.`);
 };
 

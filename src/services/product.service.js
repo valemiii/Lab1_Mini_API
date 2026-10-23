@@ -2,8 +2,7 @@ const Product = require("../models/product.model");
 const HttpError = require("../utils/httpError");
 
 // SERVICIO: reglas de negocio y acceso a datos a través del modelo.
-// Lanza HttpError (400, 404) cuando una regla no se cumple. En el Lab 2 este archivo
-// usará Prisma; el controlador y las rutas no cambian.
+// Lanza HttpError (400, 404) cuando una regla no se cumple.
 
 // Devuelve un mensaje de error o null si los datos son válidos.
 // partial = true en PUT: valida solo los campos que llegan.
@@ -29,7 +28,7 @@ const list = () => Product.readAll();
 
 // ✅ Ya resuelto
 const getById = async (id) => {
-  const item = (await Product.readAll()).find((p) => p.id === id);
+  const item = await Product.findById(id);
   if (!item) throw new HttpError(404, "Producto no encontrado");
   return item;
 };
@@ -38,35 +37,23 @@ const create = async (data) => {
   const error = validate(data);
   if (error) throw new HttpError(400, error);
 
-  const items = await Product.readAll();
-  const id = items.reduce((maxId, item) => Math.max(maxId, item.id), 0) + 1;
-  const item = { ...Product.pick(data), id };
-  items.push(item);
-  await Product.writeAll(items);
-  return item;
+  return Product.create(data);
 };
 
 const update = async (id, data) => {
   const error = validate(data, { partial: true });
   if (error) throw new HttpError(400, error);
 
-  const items = await Product.readAll();
-  const index = items.findIndex((item) => item.id === id);
-  if (index === -1) throw new HttpError(404, "Producto no encontrado");
-
-  const item = { ...items[index], ...Product.pick(data), id: items[index].id };
-  items[index] = item;
-  await Product.writeAll(items);
+  const item = await Product.update(id, data);
+  if (!item) throw new HttpError(404, "Producto no encontrado");
   return item;
 };
 
 const remove = async (id) => {
-  const items = await Product.readAll();
-  const remainingItems = items.filter((item) => item.id !== id);
-  if (remainingItems.length === items.length) {
+  const removed = await Product.remove(id);
+  if (!removed) {
     throw new HttpError(404, "Producto no encontrado");
   }
-  await Product.writeAll(remainingItems);
 };
 
 module.exports = { list, getById, create, update, remove };

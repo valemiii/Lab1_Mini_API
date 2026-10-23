@@ -1,17 +1,38 @@
-const { readFile, writeFile } = require("node:fs/promises");
+const prisma = require("../db/prisma");
 
-// MODELO: la forma de los datos (campos) y dónde se guardan (archivo JSON).
-// En el Lab 2 este archivo desaparece: el modelo pasa a prisma/schema.prisma.
-const FILE = process.env.DATA_FILE || "data/products.json";
-
-// Campos permitidos del producto del catálogo de uniformes.
 const FIELDS = ["name", "institution", "category", "price"];
 
-const readAll = async () => JSON.parse(await readFile(FILE, "utf8"));
-const writeAll = (items) => writeFile(FILE, JSON.stringify(items, null, 2));
-
-// Copia solo los campos permitidos (evita que guarden propiedades extrañas)
 const pick = (data) =>
-  Object.fromEntries(FIELDS.filter((k) => data[k] !== undefined).map((k) => [k, data[k]]));
+  Object.fromEntries(FIELDS.filter((key) => data[key] !== undefined).map((key) => [key, data[key]]));
 
-module.exports = { FIELDS, readAll, writeAll, pick };
+const toResponse = (product) => {
+  const item = { ...product };
+  if (item.institution === null) delete item.institution;
+  if (item.category === null) delete item.category;
+  return item;
+};
+
+const readAll = async () =>
+  (await prisma.product.findMany({ orderBy: { id: "asc" } })).map(toResponse);
+
+const findById = async (id) => {
+  const item = await prisma.product.findUnique({ where: { id } });
+  return item ? toResponse(item) : null;
+};
+
+const create = async (data) => toResponse(await prisma.product.create({ data: pick(data) }));
+
+const update = async (id, data) => {
+  const fields = pick(data);
+  if (Object.keys(fields).length === 0) return findById(id);
+
+  const result = await prisma.product.updateMany({ where: { id }, data: fields });
+  return result.count === 0 ? null : findById(id);
+};
+
+const remove = async (id) => {
+  const result = await prisma.product.deleteMany({ where: { id } });
+  return result.count > 0;
+};
+
+module.exports = { FIELDS, readAll, findById, create, update, remove, pick };
