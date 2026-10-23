@@ -42,26 +42,14 @@ La API queda disponible en `http://localhost:3000`. `GET /` devuelve el estado b
 | PUT | `/api/products/:id` | Actualizar campos enviados | 200 | 400, 404 |
 | DELETE | `/api/products/:id` | Eliminar sin cuerpo | 204 | 400, 404 |
 
-<<<<<<< HEAD
 Las rutas inexistentes responden 404 JSON y el JSON mal formado responde 400 JSON. Los errores internos responden 500; su stack solo se incluye fuera de producción.
 
 ## Validaciones
-=======
-| Verbo | Ruta | Estado | Descripción |
-|---|---|---|---|
-| GET | `/api/products` | Implementado · 200 | Lista los productos del catálogo. |
-| GET | `/api/products/:id` | Implementado · 200 | Consulta un producto por su identificador; responde 400 si el ID no es numérico y 404 si no existe. |
-| POST | `/api/products` | Implementado · 201 | Crea un producto. Requiere `name` (mínimo 3 caracteres) y `price` (número mayor o igual a 0); `institution` y `category` son opcionales. |
-| PUT | `/api/products/:id` | Implementado · 200 | Actualiza parcialmente un producto existente. Acepta los campos permitidos del producto; valida `name` y `price` cuando se envían. Responde 400 si el ID o los datos son inválidos y 404 si no existe. |
-| DELETE | `/api/products/:id` | Implementado · 204 | Elimina un producto existente y devuelve una respuesta sin contenido; responde 400 si el ID no es numérico y 404 si no existe. |
-
-Las operaciones de escritura reciben y devuelven JSON, excepto `DELETE`, que responde sin contenido. Los errores de validación y los identificadores no numéricos responden 400; si el producto no existe, se responde 404.
->>>>>>> 1eb72fb (Actualiza README con CRUD implementado)
 
 1. `name` es obligatorio al crear y debe ser texto con al menos 3 caracteres.
 2. `price` es obligatorio al crear y debe ser un número mayor o igual a cero.
 
-En PUT esos campos se validan solo si están presentes. Los IDs deben ser numéricos y el registro debe existir para consultar, actualizar o eliminar.
+En PUT esos campos se validan solo si están presentes. `institution` y `category` son opcionales. Los IDs deben ser numéricos y el registro debe existir para consultar, actualizar o eliminar.
 
 ## Arquitectura y datos
 
@@ -85,31 +73,16 @@ postman/                   Colección de pruebas
 
 Importa `postman/G1_Lab1.postman_collection.json` y ejecuta **Run collection** con el servidor activo. La colección contiene 13 solicitudes para CRUD, validaciones y errores. Ejecuta las solicitudes en orden: la creación guarda `createdId` como variable de colección para que actualización y eliminación usen el registro creado.
 
-<<<<<<< HEAD
-## Aporte del equipo
-
-| Integrante | Qué hizo (archivos / pasos) |
-=======
-Importar `postman/GXX_Lab1.postman_collection.json` en Postman para probar las operaciones CRUD: listar, consultar, crear, actualizar y eliminar productos.
-
-Desde PowerShell:
+También puedes probar los endpoints GET desde PowerShell:
 
 ```powershell
 Invoke-RestMethod http://localhost:3000/api/products
 Invoke-RestMethod http://localhost:3000/api/products/1
 ```
 
-## Trabajo pendiente del equipo
+## Aporte del equipo
 
-- Acordar con **Samuel** si se requieren validaciones adicionales a las actuales de `name` y `price`.
-- Confirmar el número oficial de WhatsApp antes de incluirlo en la aplicación.
-
-## Integrantes y datos del curso
-
-Completar estos datos con el equipo:
-
-| Dato | Valor |
->>>>>>> 1eb72fb (Actualiza README con CRUD implementado)
+| Integrante | Qué hizo (archivos / pasos) |
 |---|---|
 | Valeria Guaiguacundo · Persona 1 | Propuesta del emprendimiento y mapa frontend–backend en `PROPUESTA.md`; modelo adaptado en `src/models/product.model.js`; datos de ejemplo en `data/products.json`. |
 | Samuel Dávalos · Persona 2 | Servicio `src/services/product.service.js`, operaciones `create`, `update` y `remove`, validaciones y manejo de errores 400 y 404. |
