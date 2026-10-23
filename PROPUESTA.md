@@ -1,4 +1,4 @@
-# Propuesta del emprendimiento · Grupo GXX
+# Propuesta del emprendimiento · Grupo G1
 
 > Actividad 1 de la sesión 1. Propuesta basada en el catálogo público de [APDAF SPORT](https://apdafsport.com/), consultado el 18 de octubre de 2026. Los precios del catálogo pueden cambiar.
 
