@@ -1,0 +1,13 @@
+Evidencia de logger verificada durante la ejecución de Postman (23/10/2026):
+
+[2026-10-23T00:44:09.130Z] GET /api/products 200 1.5 ms
+[2026-10-23T00:44:09.243Z] GET /api/products/1 200 1.0 ms
+[2026-10-23T00:44:09.339Z] POST /api/products 201 1.5 ms
+[2026-10-23T00:44:09.542Z] PUT /api/products/4 200 2.4 ms
+[2026-10-23T00:44:09.677Z] DELETE /api/products/4 204 2.5 ms
+[2026-10-23T00:44:09.815Z] GET /api/products/99999 404 1.7 ms
+[2026-10-23T00:44:10.245Z] GET /api/products/abc 400 0.5 ms
+[2026-10-23T00:44:10.809Z] POST /api/products 400 0.7 ms
+[2026-10-23T00:44:10.906Z] GET /api/ruta-inexistente 404 0.6 ms
+
+La captura visual del logger queda pendiente de tomar desde la consola visible del servidor.
