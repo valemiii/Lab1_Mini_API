@@ -8,7 +8,7 @@ const FILE = process.env.DATA_FILE || "data/products.json";
 const FIELDS = ["name", "institution", "category", "price"];
 
 const readAll = async () => JSON.parse(await readFile(FILE, "utf8"));
-const writeAll = (items) => writeFile(FILE, JSON.stringify(items, null, 2));
+const writeAll = (items) => writeFile(FILE, `${JSON.stringify(items, null, 2)}\n`);
 
 // Copia solo los campos permitidos (evita que guarden propiedades extrañas)
 const pick = (data) =>
