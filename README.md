@@ -13,7 +13,7 @@
 
 ## Descripción
 
-Mini-API REST para administrar productos de un catálogo de uniformes escolares inspirado en APDAF SPORT. Los productos y precios de `data/products.json` son ejemplos basados en el catálogo público y no representan inventario confirmado. El número de WhatsApp está pendiente de confirmar.
+Mini-API REST para administrar productos de un catálogo de uniformes escolares inspirado en APDAF SPORT. Los productos y precios de `data/products.json` son ejemplos basados en el catálogo público y no representan inventario confirmado. El canal de atención por WhatsApp es **+593 99 717 4850**.
 
 ## Requisitos e instalación
 
