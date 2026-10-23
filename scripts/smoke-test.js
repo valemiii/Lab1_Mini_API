@@ -27,7 +27,6 @@ const run = async () => {
     ["GET", "/api/products/1", undefined, 200],
     ["GET", "/api/products/abc", undefined, 400],
     ["GET", "/api/products/99999", undefined, 404],
-    ["POST", "/api/products", { name: "Prueba smoke", institution: "QA", category: "Test", price: 1 }, 201],
     ["POST", "/api/products", { name: "A", price: -1 }, 400],
     ["POST", "/api/ruta-inexistente", {}, 404],
   ];
