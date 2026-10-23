@@ -49,7 +49,7 @@ Las rutas inexistentes responden 404 JSON y el JSON mal formado responde 400 JSO
 1. `name` es obligatorio al crear y debe ser texto con al menos 3 caracteres.
 2. `price` es obligatorio al crear y debe ser un número mayor o igual a cero.
 
-En PUT esos campos se validan solo si están presentes. Los IDs deben ser numéricos y el registro debe existir para consultar, actualizar o eliminar.
+En PUT esos campos se validan solo si están presentes. `institution` y `category` son opcionales. Los IDs deben ser numéricos y el registro debe existir para consultar, actualizar o eliminar.
 
 ## Arquitectura y datos
 
@@ -72,6 +72,13 @@ postman/                   Colección de pruebas
 ## Pruebas en Postman
 
 Importa `postman/G1_Lab1.postman_collection.json` y ejecuta **Run collection** con el servidor activo. La colección contiene 13 solicitudes para CRUD, validaciones y errores. Ejecuta las solicitudes en orden: la creación guarda `createdId` como variable de colección para que actualización y eliminación usen el registro creado.
+
+También puedes probar los endpoints GET desde PowerShell:
+
+```powershell
+Invoke-RestMethod http://localhost:3000/api/products
+Invoke-RestMethod http://localhost:3000/api/products/1
+```
 
 ## Aporte del equipo
 
