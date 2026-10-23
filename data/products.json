@@ -19,5 +19,12 @@
     "institution": "Alvernia",
     "category": "Uniforme diario",
     "price": 20
+  },
+  {
+    "name": "Prueba smoke",
+    "institution": "QA",
+    "category": "Test",
+    "price": 1,
+    "id": 4
   }
 ]
