@@ -13,7 +13,7 @@
 
 ## Descripción
 
-Mini-API REST para administrar productos de un catálogo de uniformes escolares inspirado en APDAF SPORT. Los productos y precios de `data/products.json` son ejemplos basados en el catálogo público y no representan inventario confirmado. El número de WhatsApp está pendiente de confirmar.
+Mini-API REST para administrar productos de un catálogo de uniformes escolares inspirado en APDAF SPORT. Los productos y precios de `data/products.json` son ejemplos basados en el catálogo público y no representan inventario confirmado. El canal de atención por WhatsApp es **+593 99 717 4850**.
 
 ## Requisitos e instalación
 
@@ -83,7 +83,7 @@ postman/                   Colección de pruebas
 
 ## Pruebas en Postman
 
-Importa `postman/GXX_Lab1.postman_collection.json` y ejecuta **Run collection** con el servidor activo. La colección contiene 13 solicitudes para CRUD, validaciones y errores. Ejecuta las solicitudes en orden: la creación guarda `createdId` como variable de colección para que actualización y eliminación usen el registro creado.
+Importa `postman/G1_Lab1.postman_collection.json` y ejecuta **Run collection** con el servidor activo. La colección contiene 13 solicitudes para CRUD, validaciones y errores. Ejecuta las solicitudes en orden: la creación guarda `createdId` como variable de colección para que actualización y eliminación usen el registro creado.
 
 <<<<<<< HEAD
 ## Aporte del equipo
@@ -114,7 +114,7 @@ Completar estos datos con el equipo:
 | Valeria Guaiguacundo · Persona 1 | Propuesta del emprendimiento y mapa frontend–backend en `PROPUESTA.md`; modelo adaptado en `src/models/product.model.js`; datos de ejemplo en `data/products.json`. |
 | Samuel Dávalos · Persona 2 | Servicio `src/services/product.service.js`, operaciones `create`, `update` y `remove`, validaciones y manejo de errores 400 y 404. |
 | Daniel Palacios · Persona 3 | Controlador `src/controllers/product.controller.js`, cinco endpoints conectados en `src/routes/product.routes.js` y montaje de rutas en `src/routes/index.js`. |
-| Brithany López · Persona 4 | Logger y manejador de errores en `src/middlewares/`; colección CRUD y casos de error en `postman/GXX_Lab1.postman_collection.json`. Las capturas `evidencias/logger.png` y `evidencias/postman-run.png` aún deben agregarse después de ejecutar y verificar la API y la colección. |
+| Brithany López · Persona 4 | Logger y manejador de errores en `src/middlewares/`; colección CRUD y casos de error en `postman/G1_Lab1.postman_collection.json`. |
 
 ## Declaración de uso de IA
 
@@ -124,4 +124,4 @@ Completar estos datos con el equipo:
 
 ## Entrega
 
-Antes de comprimir, confirma el nombre final solicitado para el ZIP (formato `G1_Lab1_<Emprendimiento>`), completa los aportes, ejecuta la colección y agrega las capturas reales en `evidencias/`. El ZIP debe incluir el código, `PROPUESTA.md`, este README y evidencias, sin `node_modules/` ni `.env`.
+Antes de comprimir, usa el nombre `G1_Lab1_CatalogoUniformesAPDAF.zip`. La entrega incluye el código, `PROPUESTA.md`, este README y la colección exportada, sin `node_modules/` ni `.env`.

@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "GXX_Lab1 · Mini-API MVC",
+    "name": "G1_Lab1 · Mini-API MVC",
     "description": "Colección CRUD y casos de error del Laboratorio 1. Ejecutar en orden con el servidor activo.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -74,7 +74,7 @@
               "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
               "const item = pm.response.json();",
               "pm.test(\"Devuelve el producto creado\", () => pm.expect(item).to.have.property(\"id\"));",
-              "pm.environment.set(\"createdId\", item.id);"
+              "pm.collectionVariables.set(\"createdId\", item.id);"
             ]
           }
         }

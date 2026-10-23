@@ -1,8 +1,9 @@
 /*
  * Laboratorio 1 · Mini-API MVC con CRUD
  * Desarrollo Web Avanzado (A0R04) · ESPE
- * Grupo: GXX · Emprendimiento: __________
- * Integrantes: __________ · NRC: _____ · Fecha: __/__/____
+ * Grupo: G1 · Emprendimiento: Catálogo y pedidos de uniformes escolares APDAF SPORT
+ * Integrantes: Samuel Dávalos, Valeria Guaiguacundo, Brithany López y Daniel Palacios
+ * NRC: 36878 · Fecha: 19/10/2026
  */
 const express = require("express");
 const routes = require("./routes");
