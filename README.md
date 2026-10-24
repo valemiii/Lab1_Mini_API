@@ -117,14 +117,10 @@ Invoke-RestMethod http://localhost:3000/api/products/1
 | Valeria Guaiguacundo · Persona 1 | Propuesta del emprendimiento y mapa frontend–backend en `PROPUESTA.md`; modelo adaptado en `src/models/product.model.js`; datos de ejemplo en `data/products.json`. Modelo Product; Reestructuración de carpetas; Sincronizar con PostgreSQL; Cambio de puerto de Postgres y credenciales|
 | Samuel Dávalos · Persona 2 | Servicio `src/services/product.service.js`, operaciones `create`, `update` y `remove`, validaciones y manejo de errores 400 y 404. |
 | Daniel Palacios · Persona 3 | Controlador `src/controllers/product.controller.js`, cinco endpoints conectados en `src/routes/product.routes.js` y montaje de rutas en `src/routes/index.js`. |
-| Brithany López · Persona 4 | Logger y manejador de errores en `src/middlewares/`; colección CRUD y casos de error en `postman/G1_Lab1.postman_collection.json`. |
+| Brithany López · Persona 4 | Logger y manejador de errores en `src/middlewares/`; colección CRUD y casos de error en `postman/G1_Lab1.postman_collection.json`; schema `Product` y `Category`, migración y seed de Prisma en `prisma/`; scripts `db:migrate`, `db:generate` y `db:seed`; diagrama ER en `docs/Modelo_ER.drawio`; documentación y guía de configuración en `README.md` y `.env.example`. |
 
 ## Declaración de uso de IA
 
 - Herramientas usadas: Copilot, Claude AI y ChatGPT.
 - Uso declarado por el equipo: consulta, depuración y ayuda con comandos.
 - Verificación declarada por el equipo: métodos de enrutamiento, CRUD e información del emprendimiento.
-
-## Entrega
-
-Antes de comprimir, usa el nombre `G1_Lab1_CatalogoUniformesAPDAF.zip`. La entrega incluye el código, `PROPUESTA.md`, este README y la colección exportada, sin `node_modules/` ni `.env`.
