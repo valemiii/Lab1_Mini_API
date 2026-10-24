@@ -1,3 +1,4 @@
+const { randomUUID } = require("node:crypto");
 const prisma = require("../db/prisma");
 
 const FIELDS = ["name", "institution", "category", "price"];
@@ -6,7 +7,7 @@ const pick = (data) =>
   Object.fromEntries(FIELDS.filter((key) => data[key] !== undefined).map((key) => [key, data[key]]));
 
 const toResponse = (product) => {
-  const item = { ...product };
+  const item = { ...product, price: Number(product.price) };
   if (item.institution === null) delete item.institution;
   if (item.category === null) delete item.category;
   return item;
@@ -20,7 +21,12 @@ const findById = async (id) => {
   return item ? toResponse(item) : null;
 };
 
-const create = async (data) => toResponse(await prisma.product.create({ data: pick(data) }));
+const create = async (data) =>
+  toResponse(
+    await prisma.product.create({
+      data: { ...pick(data), sku: `API-${randomUUID()}` },
+    }),
+  );
 
 const update = async (id, data) => {
   const fields = pick(data);

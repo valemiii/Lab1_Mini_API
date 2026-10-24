@@ -25,14 +25,15 @@ Mini-API REST para administrar productos de un catálogo de uniformes escolares 
 npm ci
 ```
 
-Configura la conexión en `.env` (puedes partir de `.env.example`). Para usar la instancia PostgreSQL compartida con el proyecto `espe-expressjs`, debe estar ejecutándose en `localhost:5433` con las credenciales indicadas. Prepara la tabla de productos e importa los datos de ejemplo una sola vez:
+Configura la conexión en `.env` (puedes partir de `.env.example` y sustituir los valores ficticios). No subas `.env` al repositorio. Para una base vacía, crea y aplica la migración, genera el cliente y carga los datos iniciales:
 
 ```bash
-npm run db:push
+npm run db:migrate -- --name init
+npm run db:generate
 npm run db:seed
 ```
 
-`db:seed` no sobrescribe productos existentes. Después inicia la API:
+`db:seed` limpia y vuelve a cargar todos los productos y categorías de ejemplo; ejecútalo solo en una base de desarrollo. PostgreSQL debe estar disponible según `DATABASE_URL`. Después inicia la API:
 
 ```bash
 npm run dev
@@ -63,11 +64,16 @@ En PUT esos campos se validan solo si están presentes. `institution` y `categor
 
 El flujo de una petición es **ruta → controlador → servicio → modelo**. El controlador delega la lógica de negocio y no lee archivos; el servicio aplica validaciones y el modelo persiste en PostgreSQL con Prisma. El proyecto utiliza CommonJS (`require` / `module.exports`).
 
+El modelo Prisma mantiene `User` y define `Product` y `Category` sin relación entre ellas para este paso. `Product` tiene SKU único, precio decimal, notas opcionales y fecha de creación; conserva institución y categoría como datos descriptivos para el CRUD actual. La API genera un SKU para los productos creados sin SKU explícito. El diagrama editable está en [docs/Modelo_ER.drawio](docs/Modelo_ER.drawio), junto con la descripción en [MODELO_ER.md](MODELO_ER.md).
+
 ```text
 .
 ├── prisma/
+│   ├── migrations/         SQL versionado del esquema PostgreSQL
 │   ├── schema.prisma       Modelos de PostgreSQL
-│   └── seed.js             Importación inicial de productos
+│   └── seed.js             Carga productos y categorías de ejemplo
+├── docs/
+│   └── Modelo_ER.drawio    Diagrama ER editable
 ├── scripts/
 │   └── smoke-test.js       Pruebas de integración HTTP
 ├── src/
