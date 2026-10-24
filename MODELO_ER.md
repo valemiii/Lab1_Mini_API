@@ -1,32 +1,28 @@
-# Modelo ER del emprendimiento · Grupo GXX
+# Modelo ER del emprendimiento · Grupo G1
 
 > Actividad 3 de la sesión 4. Es la base del `schema.prisma` del Lab 2 y de las relaciones del Lab 3.
 
 ## Diagrama
 
-Edítalo en https://mermaid.live (GitHub lo muestra como diagrama). Reemplaza el ejemplo por tus entidades.
 
 ```mermaid
 erDiagram
-    CUSTOMER ||--o{ ORDER : realiza
-    ORDER }o--o{ PRODUCT : contiene
-    CUSTOMER {
-        int id PK
-        string fullName
-        string email UK
-        string phone "opcional"
-    }
-    ORDER {
-        int id PK
-        datetime date
-        float total
-        int customerId FK
-    }
-    PRODUCT {
+    CATEGORY ||--o{ PRODUCT : tiene
+    PRODUCT }o--o{ ORDER : "aparece en"
+
+    CATEGORY {
         int id PK
         string name UK
-        float price "mayor o igual a 0"
-        int stock
+    }
+
+    PRODUCT {
+        int id PK
+        string name
+        string sku UK
+        decimal price
+    }
+
+    ORDER {
     }
 ```
 
