@@ -24,9 +24,14 @@ const request = (method, path, body) =>
   });
 
 const run = async () => {
+  const listed = await request("GET", "/api/products");
+  assert.equal(listed.status, 200, "GET /api/products debe responder 200");
+  const products = JSON.parse(listed.text);
+  assert.ok(products.length > 0, "El seed debe cargar productos");
+  const seedId = products[0].id;
+
   const checks = [
-    ["GET", "/api/products", undefined, 200],
-    ["GET", "/api/products/1", undefined, 200],
+    ["GET", `/api/products/${seedId}`, undefined, 200],
     ["GET", "/api/products/abc", undefined, 400],
     ["GET", "/api/products/99999", undefined, 404],
     ["POST", "/api/products", { name: "A", price: -1 }, 400],
@@ -44,7 +49,7 @@ const run = async () => {
   assert.equal(removed.status, 204);
   assert.equal(removed.text, "");
 
-  console.log(`Smoke test OK: ${checks.length + 2} escenarios verificados.`);
+  console.log(`Smoke test OK: ${checks.length + 3} escenarios verificados.`);
 };
 
 run().catch((error) => {

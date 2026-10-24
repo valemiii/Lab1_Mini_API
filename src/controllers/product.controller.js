@@ -55,4 +55,16 @@ const remove = async (req, res, next) => {
   }
 };
 
-module.exports = { list, getById, create, update, remove };
+const createMany = async (req, res, next) => {
+  try {
+    if (!Array.isArray(req.body)) {
+      return res.status(400).json({ error: "El body debe ser un arreglo" });
+    }
+    const created = await productService.createMany(req.body);
+    res.status(201).json(created);
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { list, getById, create, update, remove, createMany };

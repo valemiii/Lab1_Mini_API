@@ -8,7 +8,7 @@ services:
     environment:
       POSTGRES_USER: espe_user
       POSTGRES_PASSWORD: espe_password
-      POSTGRES_DB: espe_db
+      POSTGRES_DB: lab2_apdaf
     ports:
       - "5433:5432"
     volumes:

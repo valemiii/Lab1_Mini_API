@@ -1,7 +1,7 @@
 {
-  "name": "lab1-mini-api-mvc",
+  "name": "g1-lab2-apdaf-sport",
   "version": "1.0.0",
-  "description": "Laboratorio 1 · Desarrollo Web Avanzado · Mini-API MVC con CRUD para el emprendimiento del grupo",
+  "description": "Laboratorio 2 · Persistencia con Prisma para APDAF SPORT",
   "main": "src/server.js",
   "scripts": {
     "dev": "node --watch src/server.js",

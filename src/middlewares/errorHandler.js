@@ -2,6 +2,13 @@
 const errorHandler = (err, req, res, next) => {
   if (res.headersSent) return next(err);
 
+  if (err.code === "P2002") {
+    return res.status(409).json({ error: "Ya existe un registro con ese valor único" });
+  }
+  if (err.code === "P2025") {
+    return res.status(404).json({ error: "Producto no encontrado" });
+  }
+
   const isMalformedJson = err.type === "entity.parse.failed";
   const requestedStatus = Number(err.status || err.statusCode);
   const status = isMalformedJson ? 400 : requestedStatus >= 400 && requestedStatus < 600 ? requestedStatus : 500;

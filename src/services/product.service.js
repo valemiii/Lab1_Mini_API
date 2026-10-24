@@ -1,11 +1,24 @@
-const Product = require("../models/product.model");
+const { randomUUID } = require("node:crypto");
+const prisma = require("../db/prisma");
 const HttpError = require("../utils/httpError");
 
-// SERVICIO: reglas de negocio y acceso a datos a través del modelo.
-// Lanza HttpError (400, 404) cuando una regla no se cumple.
+const FIELDS = ["name", "institution", "category", "price", "notes", "sku"];
+const parsePrice = (value) => {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed === "" ? Number.NaN : Number(trimmed);
+  }
+  return Number(value);
+};
+const pick = (data) => {
+  const picked = Object.fromEntries(FIELDS.filter((key) => data[key] !== undefined).map((key) => [key, data[key]]));
+  if (picked.price !== undefined) {
+    picked.price = parsePrice(picked.price);
+  }
+  return picked;
+};
+const toResponse = (product) => ({ ...product, price: Number(product.price) });
 
-// Devuelve un mensaje de error o null si los datos son válidos.
-// partial = true en PUT: valida solo los campos que llegan.
 const validate = (data, { partial = false } = {}) => {
   if (data === null || typeof data !== "object" || Array.isArray(data)) {
     return "Los datos del producto deben ser un objeto";
@@ -16,44 +29,49 @@ const validate = (data, { partial = false } = {}) => {
     }
   }
   if (!partial || data.price !== undefined) {
-    if (typeof data.price !== "number" || Number.isNaN(data.price) || data.price < 0) {
+    const price = parsePrice(data.price);
+    if (!Number.isFinite(price) || price < 0) {
       return "price debe ser un número mayor o igual a 0";
+    }
+  }
+  for (const key of ["institution", "category", "notes", "sku"]) {
+    if (data[key] !== undefined && typeof data[key] !== "string") {
+      return `${key} debe ser texto`;
     }
   }
   return null;
 };
 
-// ✅ Ya resuelto: úsalo como guía
-const list = () => Product.readAll();
-
-// ✅ Ya resuelto
+const list = async () => (await prisma.product.findMany({ orderBy: { id: "asc" } })).map(toResponse);
 const getById = async (id) => {
-  const item = await Product.findById(id);
+  const item = await prisma.product.findUnique({ where: { id } });
   if (!item) throw new HttpError(404, "Producto no encontrado");
-  return item;
+  return toResponse(item);
 };
-
 const create = async (data) => {
   const error = validate(data);
   if (error) throw new HttpError(400, error);
-
-  return Product.create(data);
+  return toResponse(await prisma.product.create({ data: { ...pick(data), sku: data.sku || `API-${randomUUID()}` } }));
 };
-
 const update = async (id, data) => {
   const error = validate(data, { partial: true });
   if (error) throw new HttpError(400, error);
-
-  const item = await Product.update(id, data);
-  if (!item) throw new HttpError(404, "Producto no encontrado");
-  return item;
+  return toResponse(await prisma.product.update({ where: { id }, data: pick(data) }));
 };
-
 const remove = async (id) => {
-  const removed = await Product.remove(id);
-  if (!removed) {
-    throw new HttpError(404, "Producto no encontrado");
-  }
+  await prisma.product.delete({ where: { id } });
 };
+const createMany = async (items) =>
+  prisma.$transaction(async (tx) => {
+    const created = [];
+    for (const [index, data] of items.entries()) {
+      const error = validate(data);
+      if (error) throw new HttpError(400, `Ítem ${index + 1}: ${error}`);
+      created.push(
+        toResponse(await tx.product.create({ data: { ...pick(data), sku: data.sku || `API-${randomUUID()}` } })),
+      );
+    }
+    return created;
+  });
 
-module.exports = { list, getById, create, update, remove };
+module.exports = { FIELDS, validate, list, getById, create, update, remove, createMany };
