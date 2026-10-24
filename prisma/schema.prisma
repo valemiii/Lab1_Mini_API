@@ -20,9 +20,23 @@ model User {
 }
 
 model Product {
-  id          Int     @id @default(autoincrement())
-  name        String
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(100)
+  sku         String   @unique
+  price       Decimal  @db.Decimal(10, 2)
+  notes       String?
+  createdAt   DateTime @default(now()) @map("created_at")
   institution String?
   category    String?
-  price       Float
+
+  @@map("products")
+}
+
+model Category {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique @db.VarChar(80)
+  description String?
+  active      Boolean @default(true)
+
+  @@map("categories")
 }

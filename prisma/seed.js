@@ -1,31 +1,52 @@
-const { readFile } = require("node:fs/promises");
-const path = require("node:path");
 const prisma = require("../src/db/prisma");
 
 const seed = async () => {
-  const products = JSON.parse(
-    await readFile(path.join(__dirname, "..", "data", "products.json"), "utf8"),
-  );
+  await prisma.product.deleteMany();
+  await prisma.category.deleteMany();
 
-  const count = await prisma.product.count();
-  if (count > 0) {
-    console.log(`Seed omitido: PostgreSQL ya contiene ${count} productos.`);
-    return;
-  }
+  await prisma.product.createMany({
+    data: [
+      {
+        name: "Camiseta Polo T34 Alvernia",
+        sku: "ALV-POLO-T34",
+        price: 10,
+        notes: "Institución: Alvernia; categoría: Uniforme diario",
+        institution: "Alvernia",
+        category: "Uniforme diario",
+      },
+      {
+        name: "Chompa de Calentador T34",
+        sku: "ALV-CHOMPA-T34",
+        price: 17,
+        notes: "Institución: Alvernia; categoría: Uniforme deportivo",
+        institution: "Alvernia",
+        category: "Uniforme deportivo",
+      },
+      {
+        name: "Pantalón T34",
+        sku: "ALV-PANTALON-T34",
+        price: 20,
+        notes: "Institución: Alvernia; categoría: Uniforme diario",
+        institution: "Alvernia",
+        category: "Uniforme diario",
+      },
+    ],
+  });
 
-  await prisma.product.createMany({ data: products });
-  await prisma.$queryRaw`
-    SELECT setval(
-      pg_get_serial_sequence('"Product"', 'id'),
-      (SELECT MAX(id) FROM "Product")
-    )
-  `;
-  console.log(`Seed completado: ${products.length} productos importados.`);
+  await prisma.category.createMany({
+    data: [
+      { name: "Uniforme diario", description: "Prendas de uso diario" },
+      { name: "Uniforme deportivo", description: "Prendas para actividades deportivas" },
+      { name: "Accesorios", description: "Accesorios del uniforme escolar" },
+    ],
+  });
+
+  console.log("Seed completado: 3 productos y 3 categorías cargados.");
 };
 
 seed()
   .catch((error) => {
-    console.error("No se pudieron importar los productos a PostgreSQL:", error);
+    console.error("No se pudieron cargar los datos iniciales:", error);
     process.exitCode = 1;
   })
   .finally(() => prisma.$disconnect());
