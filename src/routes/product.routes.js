@@ -1,15 +1,16 @@
 const { Router } = require("express");
 const productController = require("../controllers/product.controller");
+const { authenticateToken, requireRole } = require("../middlewares/auth");
 
-// RUTAS: conectan cada verbo + URL con una acción del controlador
+// Leer el catálogo es público; modificarlo, solo ADMIN
 const router = Router();
+const onlyAdmin = [authenticateToken, requireRole("ADMIN")];
 
-// ✅ Ya resueltas
 router.get("/", productController.list);
 router.get("/:id", productController.getById);
-router.post("/", productController.create);
-router.post("/lote", productController.createMany);
-router.put("/:id", productController.update);
-router.delete("/:id", productController.remove);
+router.post("/", onlyAdmin, productController.create);
+router.post("/lote", onlyAdmin, productController.createMany);
+router.put("/:id", onlyAdmin, productController.update);
+router.delete("/:id", onlyAdmin, productController.remove);
 
 module.exports = router;

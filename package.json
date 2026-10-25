@@ -1,16 +1,18 @@
 {
-  "name": "g1-lab2-apdaf-sport",
+  "name": "g1-lab3-apdaf-sport",
   "version": "1.0.0",
-  "description": "Laboratorio 2 · Persistencia con Prisma para APDAF SPORT",
+  "description": "Laboratorio 3 · Relaciones, autenticación y pedidos APDAF SPORT",
   "main": "src/server.js",
   "scripts": {
     "dev": "node --watch src/server.js",
-    "start": "node src/server.js",
+    "start": "prisma migrate deploy && node src/server.js",
     "test:smoke": "node scripts/smoke-test.js",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
-    "db:seed": "prisma db seed"
+    "db:seed": "prisma db seed",
+    "postinstall": "prisma generate",
+    "db:studio": "prisma studio"
   },
   "engines": {
     "node": ">=20"
@@ -18,11 +20,11 @@
   "dependencies": {
     "@prisma/adapter-pg": "7.10.1",
     "@prisma/client": "7.10.1",
+    "bcryptjs": "^3.0.2",
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
-    "pg": "8.23.1"
-  },
-  "devDependencies": {
+    "jsonwebtoken": "^9.0.2",
+    "pg": "8.23.1",
     "prisma": "7.10.1"
   }
 }
