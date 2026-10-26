@@ -73,7 +73,19 @@ Importa `postman/G1_Lab3.postman_collection.json`, selecciona `baseUrl` y ejecut
 
 Sigue `RAILWAY.md`. El servicio requiere `DATABASE_URL` (referencia a la base Railway), `JWT_SECRET` distinto del local, `JWT_EXPIRES_IN=4h` y `NODE_ENV=production`. `npm start` ejecuta `prisma migrate deploy` antes de iniciar la API; `postinstall` genera Prisma Client. La URL pública y la evidencia `evidencias/railway-run.png` se agregan luego de desplegar y ejecutar Postman contra Railway.
 
-**Estado local verificado:** migración aplicada y sincronizada; seed ejecutado dos veces; smoke test con 10 escenarios y colección Newman con 25 solicitudes, 39 aserciones y 0 fallidas. **Pendiente externo:** crear el servicio de Railway, asignar dominio, ejecutar seed y Postman contra la base pública, y guardar la captura de Railway. La URL pública se añadirá después de comprobarla.
+**Estado local documentado:** migración aplicada y sincronizada; seed ejecutado dos veces; smoke test con 10 escenarios y colección Newman con 25 solicitudes, 39 aserciones y 0 fallidas (reporte Newman en `evidencias/newman-lab3-run.txt`). La API y PostgreSQL no estaban activos en la última revisión local, por lo que esos resultados corresponden a ejecuciones anteriores.
+
+**Checklist de entrega:**
+
+- [x] Código, migraciones, modelo ER, README, colección Postman y reporte Newman local.
+- [ ] Guardar `evidencias/postman-local.png` con la ejecución local de la colección Lab 3.
+- [ ] Crear el servicio PostgreSQL y API en Railway, configurar variables y asignar un dominio público.
+- [ ] Ejecutar el seed contra la base Railway y la colección Postman contra la URL pública.
+- [ ] Reemplazar el dominio de ejemplo en `postman/G1_Lab3_Railway.postman_environment.json`, exportar el entorno final y guardar `evidencias/railway-run.png`.
+- [ ] Generar el ZIP final `G1_Lab3_APDAFSPORT.zip` con el proyecto, migraciones, documentación, colección, entorno y evidencias; excluir `.env`, `node_modules/` y `.git/`.
+- [ ] Entregar en Moodle el ZIP, la colección v2.1, el entorno Railway exportado, el enlace de GitHub y la URL pública.
+
+La URL pública se añadirá aquí después de comprobar el despliegue. El ZIP creado antes de completar las evidencias es solo un paquete previo y no acredita que los pasos pendientes estén realizados.
 
 ## Distribución para el trabajo y sustentación del equipo
 
