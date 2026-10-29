@@ -3,7 +3,7 @@ services:
     name: apdaf-lab3-api
     runtime: node
     plan: free
-    buildCommand: npm ci && npx prisma generate && npx prisma migrate deploy
+    buildCommand: npm ci && npx prisma generate && (npx prisma migrate resolve --rolled-back 20261028000000_init || true) && npx prisma migrate deploy
     startCommand: npm start
     healthCheckPath: /
     envVars:
