@@ -8,121 +8,108 @@
 | Emprendimiento | Catálogo y pedidos de uniformes escolares APDAF SPORT |
 | Integrantes | 1. Samuel Dávalos · 2. Valeria Guaiguacundo · 3. Brithany López · 4. Daniel Palacios |
 | NRC | 36878 |
-| Fecha | 19/10/2026 |
-| Repositorio | [Lab1_Mini_API](https://github.com/valemiii/Lab1_Mini_API) |
+| Repositorio | https://github.com/valemiii/Lab1_Mini_API |
+| **URL pública** | **https://apdaf-lab3-api.onrender.com** |
 
-## Descripción
+API REST del catálogo de uniformes APDAF SPORT con Express + Prisma + PostgreSQL: autenticación JWT con bcrypt, roles USER/ADMIN, relaciones 1:1, 1:N y N:M, pedidos con transacción que consume stock, módulo de administración con consultas avanzadas y despliegue en Render + PostgreSQL de Render.
 
-Mini-API REST para administrar productos de un catálogo de uniformes escolares inspirado en APDAF SPORT. Los productos y precios de `data/products.json` son ejemplos basados en el catálogo público y no representan inventario confirmado. El canal de atención por WhatsApp es **+593 99 717 4850**.
+> **Despliegue:** se usa **Render** (web service + PostgreSQL) en lugar de Railway, opción aceptada en el enunciado ("Render + Neon con la misma colección y la URL pública en el README"). La configuración está en `render.yaml`.
 
-## Requisitos e instalación
+## Lab 3
 
-- Node.js 20 o superior
-- npm
+### Usuarios de prueba (creados por el seed)
 
-```bash
-npm ci
-```
+| Rol | Correo | Contraseña |
+|---|---|---|
+| ADMIN | `admin@apdaf.com` | `Admin123*` |
+| USER | `ana@correo.com` | `Ana12345*` |
 
-Opcionalmente, copia `.env.example` a `.env` (en PowerShell: `Copy-Item .env.example .env`; en macOS/Linux: `cp .env.example .env`). Inicia el servidor:
+### Endpoints
 
-```bash
-npm run dev
-```
+Leyenda: 🌐 público · 🔑 requiere token (cualquier rol) · 🛡️ requiere token con rol ADMIN.
 
-La API queda disponible en `http://localhost:3000`. `GET /` devuelve el estado básico; `PORT` configura el puerto y `DATA_FILE` la ruta del archivo JSON.
+| Verbo | Ruta | Acceso | Qué hace | Éxito | Errores |
+|---|---|---|---|---|---|
+| GET | `/` | 🌐 | Estado de la API | 200 | — |
+| POST | `/api/auth/register` | 🌐 | Crea usuario + perfil Customer (1:1, escritura anidada) | 201 | 400, 409 (correo repetido) |
+| POST | `/api/auth/login` | 🌐 | Devuelve el JWT `{ id, role }` | 200 | 401 (mensaje genérico) |
+| GET | `/api/auth/me` | 🔑 | Perfil del usuario sin contraseña | 200 | 401, 403 |
+| GET | `/api/products` | 🌐 | Lista el catálogo | 200 | — |
+| GET | `/api/products/:id` | 🌐 | Consulta un producto | 200 | 400, 404 |
+| POST | `/api/products` | 🛡️ | Crea producto | 201 | 400, 401, 403 |
+| POST | `/api/products/lote` | 🛡️ | Crea varios productos en una transacción | 201 | 400, 401, 403 |
+| PUT | `/api/products/:id` | 🛡️ | Actualiza producto | 200 | 400, 401, 403, 404 |
+| DELETE | `/api/products/:id` | 🛡️ | Elimina producto | 204 | 401, 403, 404, 409 (tiene pedidos · Restrict) |
+| POST | `/api/orders` | 🔑 | Crea pedido y descuenta stock en `$transaction` | 201 | 400, 401, 403, 404, 409 (stock insuficiente → ROLLBACK) |
+| GET | `/api/orders` | 🔑 | Mis pedidos con `include` (ítems + producto) y `orderBy` | 200 | 401, 403 |
+| PATCH | `/api/orders/:id/cancel` | 🔑 | Cancela y devuelve el stock (transacción) | 200 | 401, 403 (no es tuyo), 404, 409 (no está PENDING) |
+| GET | `/api/admin/orders?status=&from=&to=&page=&limit=` | 🛡️ | Filtros + paginación + `count` → `{ page, limit, total, pages, data }` | 200 | 400, 401, 403 |
+| PATCH | `/api/admin/orders/:id/status` | 🛡️ | Cambia el estado de un pedido | 200 | 400, 401, 403, 404 |
+| GET | `/api/admin/reports/top-products?limit=` | 🛡️ | Productos más vendidos con `groupBy` + `_sum` | 200 | 401, 403 |
 
-## Endpoints
+Códigos de autenticación: sin token → **401**; token inválido/expirado o rol insuficiente → **403**; correo o clave incorrectos → **401** con el mismo mensaje.
 
-| Verbo | Ruta | Acción | Éxito | Errores |
-|---|---|---|---|---|
-| GET | `/api/products` | Listar productos | 200 | 500 |
-| GET | `/api/products/:id` | Consultar uno | 200 | 400, 404 |
-| POST | `/api/products` | Crear producto | 201 | 400 |
-| PUT | `/api/products/:id` | Actualizar campos enviados | 200 | 400, 404 |
-| DELETE | `/api/products/:id` | Eliminar sin cuerpo | 204 | 400, 404 |
+### Decisiones de `onDelete`
 
-Las rutas inexistentes responden 404 JSON y el JSON mal formado responde 400 JSON. Los errores internos responden 500; su stack solo se incluye fuera de producción.
+| Relación | onDelete | Por qué |
+|---|---|---|
+| User 1:1 Customer | Cascade | El perfil no existe sin su cuenta. |
+| Customer 1:N Order | Restrict | Los pedidos son historial de ventas; no se borra un cliente que compró. |
+| Category 1:N Product | SetNull | El producto sigue en el catálogo aunque se borre su categoría. |
+| Order → OrderItem | Cascade | Las líneas pertenecen a su pedido. |
+| Product → OrderItem | Restrict | No se pierde el detalle ni el precio histórico de pedidos (409 al borrar). |
 
-## Validaciones
+Detalle completo en [`MODELO_ER.md`](MODELO_ER.md).
 
-1. `name` es obligatorio al crear y debe ser texto con al menos 3 caracteres.
-2. `price` es obligatorio al crear y debe ser un número mayor o igual a cero.
+### Arquitectura
 
-En PUT esos campos se validan solo si están presentes. `institution` y `category` son opcionales. Los IDs deben ser numéricos y el registro debe existir para consultar, actualizar o eliminar.
-
-## Arquitectura y datos
-
-El flujo de una petición es **ruta → controlador → servicio → modelo**. El controlador delega la lógica de negocio y no lee archivos; el servicio aplica validaciones y el modelo persiste en JSON. El proyecto utiliza CommonJS (`require` / `module.exports`). En el Laboratorio 2, el almacenamiento JSON se reemplazará por Prisma.
+`routes → controllers → services`. Las rutas solo montan middlewares (`authenticateToken`, `requireRole`) y controladores; los controladores leen `req` y responden; **todas las consultas de Prisma están en `src/services/`**.
 
 ```text
 src/
-├── app.js                 Configura Express, middlewares y prefijo /api
-├── server.js              Carga .env e inicia el servidor
-├── routes/                Rutas HTTP de la API
-├── controllers/           Lectura de petición y respuestas HTTP
-├── services/              Reglas de negocio y validaciones
-├── models/                Campos y persistencia JSON
-├── middlewares/           Logger, notFound y errorHandler
-└── utils/httpError.js     Error con estado HTTP
-data/products.json         Productos de ejemplo
-postman/                   Colección de pruebas
+├── app.js / server.js
+├── routes/        index, auth, products, orders, admin
+├── controllers/   auth, product, order, admin
+├── services/      auth (bcrypt + JWT), product, order ($transaction), admin (filtros, groupBy)
+├── middlewares/   auth (authenticateToken, requireRole), errorHandler (P2002/P2003 → 409, P2025 → 404), logger, notFound
+├── db/prisma.js
+└── utils/httpError.js
+prisma/            schema.prisma, migrations/, seed.js
+postman/           G1_Lab3.postman_collection.json + G1_Lab3_Render.postman_environment.json
+evidencias/        capturas y salida de Newman
 ```
 
-## Pruebas en Postman
+### Ejecución local
 
-Importa `postman/G1_Lab1.postman_collection.json` y ejecuta **Run collection** con el servidor activo. La colección contiene 13 solicitudes para CRUD, validaciones y errores. Ejecuta las solicitudes en orden: la creación guarda `createdId` como variable de colección para que actualización y eliminación usen el registro creado.
-
-También puedes probar los endpoints GET desde PowerShell:
-
-```powershell
-Invoke-RestMethod http://localhost:3000/api/products
-Invoke-RestMethod http://localhost:3000/api/products/1
+```bash
+npm ci
+cp .env.example .env            # DATABASE_URL y JWT_SECRET
+npx prisma migrate deploy       # o: npx prisma migrate dev
+npx prisma generate
+npm run db:seed                 # admin@apdaf.com / Admin123*
+npm run dev                     # http://localhost:3000
 ```
 
-## Aporte del equipo
+### Despliegue (Render)
 
-| Integrante | Qué hizo (archivos / pasos) |
+- `render.yaml` crea el web service `apdaf-lab3-api` y la base `apdaf-lab3-db`; `DATABASE_URL` se toma de la base, `JWT_SECRET` se genera en Render (distinto al local) y `NODE_ENV=production`.
+- `npm start` ejecuta `prisma migrate deploy` (migraciones automáticas), luego `node prisma/seed.js --if-empty` (siembra solo si la base está vacía, así un reinicio no borra pedidos) y levanta la API.
+
+### Postman
+
+Importar `postman/G1_Lab3.postman_collection.json` (25 peticiones: Auth, Productos por rol, Pedidos con ROLLBACK y cancelación, Admin) y el entorno `postman/G1_Lab3_Render.postman_environment.json` (`baseUrl = https://apdaf-lab3-api.onrender.com`). **Run collection** en local y con el entorno Render. Evidencias en `evidencias/`.
+
+### Aporte de cada integrante
+
+| Integrante | Aporte en el Lab 3 |
 |---|---|
-| Valeria Guaiguacundo · Persona 1 | Propuesta del emprendimiento y mapa frontend–backend en `PROPUESTA.md`; modelo adaptado en `src/models/product.model.js`; datos de ejemplo en `data/products.json`. |
-| Samuel Dávalos · Persona 2 | Servicio `src/services/product.service.js`, operaciones `create`, `update` y `remove`, validaciones y manejo de errores 400 y 404. |
-| Daniel Palacios · Persona 3 | Controlador `src/controllers/product.controller.js`, cinco endpoints conectados en `src/routes/product.routes.js` y montaje de rutas en `src/routes/index.js`. |
-| Brithany López · Persona 4 | Logger y manejador de errores en `src/middlewares/`; colección CRUD y casos de error en `postman/G1_Lab1.postman_collection.json`. |
+| Valeria Guaiguacundo | Relaciones y mapeo: `prisma/schema.prisma`, migraciones, `MODELO_ER.md`, `prisma/seed.js`. |
+| Samuel Dávalos | Pedidos con transacción: `src/services/order.service.js` (stock con `updateMany` condicional, 409/ROLLBACK, cancelación), `order.routes.js`, `order.controller.js`. |
+| Daniel Palacios | Autenticación en capas: `auth.routes.js`, `auth.controller.js`, `auth.service.js`, `middlewares/auth.js` (`requireRole`); despliegue en Render (`render.yaml`). |
+| Brithany López | Módulo admin (`admin.service.js`: filtros, paginación, `groupBy`), `errorHandler.js`, colección y entorno de Postman, evidencias. |
 
-## Declaración de uso de IA
+### Declaración de uso de IA
 
-- Herramientas usadas: Copilot, Claude AI y ChatGPT.
-- Uso declarado por el equipo: consulta, depuración y ayuda con comandos.
-- Verificación declarada por el equipo: métodos de enrutamiento, CRUD e información del emprendimiento.
-
-## Entrega
-
-Antes de comprimir, usa el nombre `G1_Lab1_CatalogoUniformesAPDAF.zip`. La entrega incluye el código, `PROPUESTA.md`, este README y la colección exportada, sin `node_modules/` ni `.env`.
-# Laboratorio 3 · APDAF SPORT API
-
-API REST para catálogo de uniformes escolares APDAF SPORT. Incluye Prisma/PostgreSQL, relaciones 1:1, 1:N y N:M, autenticación JWT con bcrypt, transacciones de pedidos con control de stock, reportes administrativos y despliegue preparado para Render.
-
-## Ejecución
-
-1. Copiar `.env.example` a `.env` y configurar `DATABASE_URL` y `JWT_SECRET`.
-2. Ejecutar `npm ci`, `npx prisma migrate dev --name init` y `npm run db:seed`.
-3. Ejecutar `npm start`.
-
-## Credenciales de prueba
-
-- Admin: `admin@apdaf.com` / `Admin123*`
-- Cliente: `ana@correo.com` / `Ana12345*`
-
-## Endpoints principales
-
-`POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`, `GET /api/products`, `POST /api/orders`, `GET /api/orders`, `PATCH /api/orders/:id/cancel`.
-
-Admin: `GET /api/admin/orders`, `PATCH /api/admin/orders/:id/status`, `GET /api/admin/reports/top-products` (requieren rol ADMIN). Los errores usan 400, 401, 403, 404 y 409 según la rúbrica.
-
-## Relaciones y borrado
-
-User-Customer es 1:1 con `Cascade`; Customer-Order es 1:N con `Restrict`; Order-Product es N:M explícita mediante OrderItem, con `Cascade` hacia sus líneas y `Restrict` hacia productos.
-
-## Despliegue
-
-`render.yaml` crea el servicio web y PostgreSQL en Render. La colección está en `postman/GXX_Lab3.postman_collection.json` y el modelo relacional en `MODELO_ER.md`.
+- **Herramientas:** GitHub Copilot, ChatGPT y Claude.
+- **Para qué:** consultar la sintaxis de relaciones y `$transaction` de Prisma, entender errores de migración (enums duplicados en el despliegue), revisar la entrega contra la rúbrica y alinear `schema.prisma` con las migraciones ya aplicadas en Render, redactar este README y `MODELO_ER.md`.
+- **Verificación:** el equipo ejecutó la colección de Postman en local y contra la URL pública, y revisó las FK en el SQL de `prisma/migrations/`. Cada integrante puede sustentar su parte.

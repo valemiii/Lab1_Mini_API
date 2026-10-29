@@ -1,18 +1,16 @@
 // Lab 3 · Relaciones, mapeo y consultas avanzadas · APDAF SPORT
-// Grupo: G1 · Emprendimiento: Catálogo de uniformes escolares APDAF SPORT
-// Modelo adaptado desde el kit al catálogo de uniformes escolares. Incluye
-// reemplaza Customer/Product/Order/OrderItem por TUS entidades con al menos:
-//   · una relación 1:1, una 1:N y una N:M (implícita o explícita)
-//   · onDelete elegido a propósito (Cascade, Restrict o SetNull) en cada relación
-//   · un enum, un Decimal o DateTime y un @@index o @@unique compuesto
-// Relaciones: User-Customer 1:1 Cascade; Customer-Order 1:N Restrict;
-// Order-Product N:M explícita con OrderItem Cascade/Restrict.
+// Grupo: G1 · Emprendimiento: catálogo y pedidos de uniformes escolares APDAF SPORT
+//
+// Relaciones (ver MODELO_ER.md para la justificación de cada onDelete):
+//   · User 1:1 Customer        → onDelete: Cascade  (FK user_id @unique)
+//   · Customer 1:N Order       → onDelete: Restrict
+//   · Category 1:N Product     → onDelete: SetNull
+//   · Order N:M Product        → explícita con OrderItem (Cascade hacia Order, Restrict hacia Product)
 
 generator client {
   provider = "prisma-client-js"
 }
 
-// Prisma 7: la URL ya no va aquí; está en prisma.config.ts
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -29,20 +27,20 @@ enum OrderStatus {
   CANCELLED
 }
 
-// Usuario que se autentica con JWT (clases 18–20)
+// Usuario que se autentica con JWT
 model User {
   id        Int       @id @default(autoincrement())
   email     String    @unique @db.VarChar(120)
-  password  String // hash de bcrypt, nunca la clave en texto plano
+  password  String    @map("password_hash") // hash de bcrypt, nunca la clave en texto plano
   name      String    @db.VarChar(100)
   role      Role      @default(USER)
   createdAt DateTime  @default(now()) @map("created_at")
-  customer  Customer? // 1:1 → el lado sin FK
+  customer  Customer? // 1:1 → lado sin FK
 
   @@map("users")
 }
 
-// Entidad del Lab 2, ahora relacionada
+// Perfil de cliente: se crea junto con el usuario al registrarse (escritura anidada)
 model Customer {
   id        Int      @id @default(autoincrement())
   fullName  String   @map("full_name") @db.VarChar(100)
@@ -51,27 +49,41 @@ model Customer {
   createdAt DateTime @default(now()) @map("created_at")
 
   // 1:1 con User: la FK es única. Si se borra el usuario, se borra su perfil
-  userId Int?  @unique @map("user_id")
-  user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int  @unique @map("user_id")
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   orders Order[] // 1:N
 
   @@map("customers")
 }
 
+// Categorías del catálogo (camisas, pantalones, chompas…)
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique @db.VarChar(80)
+  description String?
+  active      Boolean   @default(true)
+  products    Product[] // 1:N
+
+  @@map("categories")
+}
+
+// Entidad principal del Lab 2, ahora relacionada
 model Product {
-  id        Int         @id @default(autoincrement())
-  name      String      @unique @db.VarChar(80)
-  price     Decimal     @db.Decimal(10, 2)
-  stock     Int         @default(0)
-  category  String?     @db.VarChar(40)
-  institution String?   @db.VarChar(80)
-  createdAt DateTime    @default(now()) @map("created_at")
-  updatedAt DateTime    @updatedAt @map("updated_at")
-  items     OrderItem[] // N:M con Order a través de OrderItem
+  id          Int         @id @default(autoincrement())
+  name        String      @db.VarChar(100)
+  sku         String      @unique
+  price       Decimal     @db.Decimal(10, 2)
+  notes       String?
+  createdAt   DateTime    @default(now()) @map("created_at")
+  institution String?
+  category    String? // etiqueta de texto heredada del Lab 2
+  stock       Int         @default(0) // recurso limitado que consume el pedido
+  categoryId  Int?        @map("category_id")
+  categoryRef Category?   @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  items       OrderItem[] // N:M con Order a través de OrderItem
 
-  @@index([category])
-
+  @@index([categoryId])
   @@map("products")
 }
 
@@ -85,12 +97,12 @@ model Order {
   customer   Customer    @relation(fields: [customerId], references: [id], onDelete: Restrict)
   items      OrderItem[]
 
-  @@index([customerId])
-  @@index([status, createdAt])
+  @@index([customerId, createdAt]) // "mis pedidos" ordenados por fecha
+  @@index([status, createdAt]) // filtros del módulo admin
   @@map("orders")
 }
 
-// N:M explícita: la tabla intermedia guarda datos propios (cantidad y precio)
+// N:M explícita: la tabla intermedia guarda datos propios (cantidad y precio histórico)
 model OrderItem {
   orderId   Int     @map("order_id")
   productId Int     @map("product_id")
@@ -99,6 +111,6 @@ model OrderItem {
   order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
 
-  @@id([orderId, productId])
+  @@id([orderId, productId]) // clave primaria compuesta: un producto una sola vez por pedido
   @@map("order_items")
 }

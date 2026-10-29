@@ -18,11 +18,6 @@ const parseStatus = (status) => {
 };
 
 // Filtros + paginación + orden + conteo en una sola transacción de lectura
-// TODO Paso 3 (clase «Endpoint para listar citas con Prisma»): filtros + paginación.
-// where = { status: parseStatus(status), createdAt: { gte: from && new Date(from), lte: ... } }
-// take = toInt(limit, 10, 50); skip = (page - 1) * take
-// Usa prisma.$transaction([prisma.order.count({ where }), prisma.order.findMany({ where, include, orderBy, skip, take })])
-// y responde { page, limit, total, pages, data }
 const listOrders = async ({ status, from, to, page, limit }) => {
   const p = toInt(page, 1); const take = toInt(limit, 10, 50); const parsed = parseStatus(status);
   const where = { ...(parsed ? { status: parsed } : {}), ...(from || to ? { createdAt: { ...(from ? { gte: new Date(from) } : {}), ...(to ? { lte: new Date(to) } : {}) } } : {}) };
@@ -36,9 +31,6 @@ const updateOrderStatus = async (id, status) => {
 };
 
 // Consulta avanzada: agrupa los ítems por producto y suma unidades vendidas
-// TODO Paso 3 · consulta avanzada: prisma.orderItem.groupBy({ by: ["productId"], _sum: { quantity: true },
-// where: { order: { status: { not: "CANCELLED" } } }, orderBy: { _sum: { quantity: "desc" } }, take })
-// y agrega el nombre de cada producto → [{ productId, name, unitsSold }]
 const topProducts = async (limit) => {
   const take = toInt(limit, 5, 50); const rows = await prisma.orderItem.groupBy({ by: ["productId"], _sum: { quantity: true }, where: { order: { status: { not: "CANCELLED" } } }, orderBy: { _sum: { quantity: "desc" } }, take });
   const products = await prisma.product.findMany({ where: { id: { in: rows.map((r) => r.productId) } }, select: { id: true, name: true } });

@@ -5,11 +5,13 @@ const errorHandler = (err, req, res, next) => {
   const isMalformedJson = err.type === "entity.parse.failed";
   const prismaCode = err.code;
   const requestedStatus = Number(err.status || err.statusCode);
-  const status = isMalformedJson ? 400 : prismaCode === "P2002" ? 409 : prismaCode === "P2025" ? 404 : requestedStatus >= 400 && requestedStatus < 600 ? requestedStatus : 500;
+  // P2002: único repetido · P2003: una FK con Restrict impide borrar · P2025: no existe
+  const status = isMalformedJson ? 400 : prismaCode === "P2002" || prismaCode === "P2003" ? 409 : prismaCode === "P2025" ? 404 : requestedStatus >= 400 && requestedStatus < 600 ? requestedStatus : 500;
   const isInternalError = status === 500;
   const message = isMalformedJson
     ? "El cuerpo de la solicitud contiene JSON mal formado"
     : prismaCode === "P2002" ? "Ya existe un registro con ese valor"
+    : prismaCode === "P2003" ? "No se puede eliminar: el registro está relacionado con otros datos"
     : prismaCode === "P2025" ? "Registro no encontrado"
     : isInternalError
       ? "Error interno del servidor"

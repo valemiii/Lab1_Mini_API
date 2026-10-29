@@ -341,7 +341,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"admin@cafe.com\",\n  \"password\": \"Admin123*\"\n}",
+              "raw": "{\n  \"email\": \"admin@apdaf.com\",\n  \"password\": \"Admin123*\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -444,7 +444,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Mocaccino {{$timestamp}}\",\n  \"price\": 3.75,\n  \"stock\": 5,\n  \"category\": \"bebidas\"\n}",
+              "raw": "{\n  \"name\": \"Corbata escolar APDAF {{$timestamp}}\",\n  \"price\": 3.75,\n  \"stock\": 5,\n  \"category\": \"accesorios\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

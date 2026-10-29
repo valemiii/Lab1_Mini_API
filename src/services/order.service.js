@@ -26,13 +26,6 @@ const validateItems = (items) => {
 };
 
 // TRANSACCIÓN: descuenta stock y crea el pedido con sus ítems, o no hace nada
-// TODO Paso 3 · TRANSACCIÓN (clase «Servicios y controladores para gestión de reservas»):
-// 1. validateItems(items) y customerOf(userId)
-// 2. prisma.$transaction(async (tx) => { ... }) y, por cada ítem:
-//    - tx.product.updateMany({ where: { id, stock: { gte: quantity } }, data: { stock: { decrement: quantity } } })
-//    - si el producto no existe → 404; si count === 0 → 409 «Stock insuficiente» (ROLLBACK)
-//    - acumula total y la línea { productId, quantity, unitPrice: product.price }
-// 3. tx.order.create({ data: { customerId, total, items: { create: lines } }, include: orderInclude })
 const create = async (userId, items) => {
   validateItems(items); const customer = await customerOf(userId);
   return prisma.$transaction(async (tx) => {
@@ -58,8 +51,6 @@ const listByUser = async (userId) => {
 };
 
 // TRANSACCIÓN: cambia el estado y devuelve el stock de cada ítem
-// TODO Paso 3 · TRANSACCIÓN: busca el pedido con sus ítems (404), verifica que sea del cliente (403)
-// y que esté PENDING (409). Devuelve el stock de cada ítem con increment y cambia status a CANCELLED.
 const cancel = async (userId, orderId) => {
   const customer = await customerOf(userId);
   return prisma.$transaction(async (tx) => {
