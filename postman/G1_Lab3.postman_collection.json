@@ -592,10 +592,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "// Segundo producto del seed para probar que el primero NO se descuenta",
-                  "pm.sendRequest(pm.collectionVariables.get(\"baseUrl\") + \"/api/products\", (err, res) => {",
-                  "  pm.collectionVariables.set(\"productId2\", res.json().find((p) => p.name === \"Croissant\").id);",
-                  "});"
+                  "// El seed crea Croissant con ID 2; se fija antes de enviar el body para evitar una carrera async.",
+                  "pm.collectionVariables.set(\"productId2\", 2);"
                 ]
               }
             }

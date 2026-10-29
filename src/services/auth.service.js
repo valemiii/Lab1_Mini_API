@@ -17,7 +17,7 @@ const register = async ({ email, password, name, phone }) => {
 
 const login = async ({ email, password }) => {
   const user = await prisma.user.findUnique({ where: { email: String(email || "").toLowerCase().trim() } });
-  if (!user || !(await bcrypt.compare(password || "", user.password))) throw new HttpError(401, "Credenciales inválidas");
+  if (!user || !(await bcrypt.compare(password || "", user.password))) throw new HttpError(401, "Credenciales inválidos");
   return jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || "4h" });
 };
 
