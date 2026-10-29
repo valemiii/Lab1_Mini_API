@@ -2,7 +2,7 @@ services:
   - type: web
     name: apdaf-lab3-api
     runtime: node
-    plan: starter
+    plan: free
     buildCommand: npm ci && npx prisma generate && npx prisma migrate deploy
     startCommand: npm start
     healthCheckPath: /
@@ -19,4 +19,4 @@ services:
         value: production
 databases:
   - name: apdaf-lab3-db
-    plan: starter
+    plan: basic-256mb
