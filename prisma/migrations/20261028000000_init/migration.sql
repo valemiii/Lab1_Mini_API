@@ -1,0 +1,2 @@
+-- Migración no-op para permitir que Prisma registre como revertida el intento
+-- anterior que chocó con los enums ya creados por la migración Lab3.
