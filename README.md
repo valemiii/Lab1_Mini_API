@@ -1,6 +1,6 @@
-# Laboratorio 1 · Mini-API MVC con CRUD
+# Laboratorio 3 · Relaciones, autenticación y despliegue · APDAF SPORT
 
-**Desarrollo Web Avanzado (A0R04) · ESPE · Unidad 1: Persistencia de datos y ORM**
+**Desarrollo Web Avanzado (A0R04) · ESPE · Grupo G1**
 
 | Dato | Valor |
 |---|---|
