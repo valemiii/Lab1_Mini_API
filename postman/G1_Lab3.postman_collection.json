@@ -592,8 +592,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "// El seed crea Croissant con ID 2; se fija antes de enviar el body para evitar una carrera async.",
-                  "pm.collectionVariables.set(\"productId2\", 2);"
+                  "// Producto del seed con stock limitado; se fija antes de enviar el body para evitar una carrera async.",
+                  "pm.collectionVariables.set(\"productId2\", 1);"
                 ]
               }
             }
