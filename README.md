@@ -1,4 +1,4 @@
-# Laboratorio 3 · Relaciones, autenticación y despliegue APDAF SPORT
+# Laboratorio 1 · Mini-API MVC con CRUD
 
 **Desarrollo Web Avanzado (A0R04) · ESPE · Unidad 1: Persistencia de datos y ORM**
 
@@ -6,114 +6,123 @@
 |---|---|
 | Grupo | G1 |
 | Emprendimiento | Catálogo y pedidos de uniformes escolares APDAF SPORT |
-| Integrantes | Samuel Dávalos · Valeria Guaiguacundo · Brithany López · Daniel Palacios |
+| Integrantes | 1. Samuel Dávalos · 2. Valeria Guaiguacundo · 3. Brithany López · 4. Daniel Palacios |
 | NRC | 36878 |
+| Fecha | 19/10/2026 |
 | Repositorio | [Lab1_Mini_API](https://github.com/valemiii/Lab1_Mini_API) |
 
 ## Descripción
 
-API REST para administrar el catálogo y pedidos de uniformes escolares APDAF SPORT. Este repositorio continúa el Lab 2 y ahora integra relaciones de Prisma, autenticación JWT con bcrypt, autorización por rol, pedidos con descuento transaccional de stock y consultas administrativas. Los productos y precios semilla son datos demostrativos, no inventario confirmado.
+Mini-API REST para administrar productos de un catálogo de uniformes escolares inspirado en APDAF SPORT. Los productos y precios de `data/products.json` son ejemplos basados en el catálogo público y no representan inventario confirmado. El canal de atención por WhatsApp es **+593 99 717 4850**.
 
-## Requisitos y ejecución local
+## Requisitos e instalación
 
-- Node.js 20.19 o superior y npm.
-- PostgreSQL 17 disponible según `DATABASE_URL` en `.env`.
-- Copia `.env.example` a `.env` y configura la URL local y un `JWT_SECRET` aleatorio de al menos 32 caracteres. `.env` nunca se sube a GitHub.
-- Si ya tienes PostgreSQL activo en `localhost:5433`, úsalo. No levantes otro contenedor que compita por el mismo puerto.
+- Node.js 20 o superior
+- npm
 
 ```bash
 npm ci
-npx prisma migrate deploy
-npm run db:generate
-npm run db:seed
+```
+
+Opcionalmente, copia `.env.example` a `.env` (en PowerShell: `Copy-Item .env.example .env`; en macOS/Linux: `cp .env.example .env`). Inicia el servidor:
+
+```bash
 npm run dev
 ```
 
-La API local queda en `http://localhost:3000`. `GET /` devuelve el estado. `npm run db:seed` elimina y recarga los datos de demostración, así que úsalo solo en una base local del laboratorio. El seed crea estas credenciales de prueba: `admin@apdafsport.com` / `Admin123*` y `cliente@apdafsport.com` / `Cliente123*`. No reutilices esas claves fuera de esta práctica.
-
-## Modelo y decisiones de relaciones
-
-El esquema de Prisma contiene User, Customer, Category, Product, Order y OrderItem. Se implementa la relación 1:1 User–Customer, 1:N Customer–Order y N:M Order–Product mediante OrderItem, que guarda cantidad y precio unitario histórico. Category–Product es 1:N. `MODELO_ER.md` documenta cardinalidades y políticas de borrado.
-
-Los enums `Role` y `OrderStatus`, los precios `Decimal(10,2)`, las fechas `DateTime`, los mapeos snake_case y los índices se encuentran en `prisma/schema.prisma`. El stock se actualiza condicionalmente dentro de una transacción y no puede quedar negativo.
-
-Políticas `onDelete`: User–Customer `Cascade` (el perfil depende de su cuenta); Category–Product `SetNull` (conserva el producto); Customer–Order `Restrict` (conserva historial); Order–OrderItem `Cascade` (el detalle depende del pedido); Product–OrderItem `Restrict` (protege el detalle histórico).
+La API queda disponible en `http://localhost:3000`. `GET /` devuelve el estado básico; `PORT` configura el puerto y `DATA_FILE` la ruta del archivo JSON.
 
 ## Endpoints
 
-| Método | Ruta | Acceso | Resultado principal |
-|---|---|---|---|
-| POST | `/api/auth/register` | Público | 201 crea cuenta y perfil; 400 validación; 409 correo repetido |
-| POST | `/api/auth/login` | Público | 200 token; 401 credenciales inválidas |
-| GET | `/api/auth/me` | Token | 200 perfil público; 401 falta token; 403 token inválido/expirado |
-| GET | `/api/products` | Público | 200 catálogo |
-| GET | `/api/products/:id` | Público | 200 producto; 404 no existe |
-| POST, PUT, DELETE | `/api/products` y `/api/products/:id` | ADMIN | CRUD protegido; 201/200/204, 400/404/409 |
-| POST | `/api/products/lote` | ADMIN | 201 lote atómico; 400/409 rollback |
-| POST | `/api/orders` | USER autenticado | 201 pedido; 400 entrada inválida; 404 producto inexistente; 409 stock insuficiente |
-| GET | `/api/orders` | USER autenticado | Pedidos propios con ítems y productos |
-| PATCH | `/api/orders/:id/cancel` | USER propietario | Cancela pedido pendiente y devuelve stock; 403/404/409 según caso |
-| GET | `/api/admin/orders` | ADMIN | Filtros `status`, `from`, `to`, paginación `page`, `limit`, `count` |
-| PATCH | `/api/admin/orders/:id/status` | ADMIN | Actualiza estado del pedido |
-| GET | `/api/admin/reports/top-products` | ADMIN | Agrupación de productos y unidades vendidas |
+| Verbo | Ruta | Acción | Éxito | Errores |
+|---|---|---|---|---|
+| GET | `/api/products` | Listar productos | 200 | 500 |
+| GET | `/api/products/:id` | Consultar uno | 200 | 400, 404 |
+| POST | `/api/products` | Crear producto | 201 | 400 |
+| PUT | `/api/products/:id` | Actualizar campos enviados | 200 | 400, 404 |
+| DELETE | `/api/products/:id` | Eliminar sin cuerpo | 204 | 400, 404 |
 
-Las rutas administrativas y escrituras del catálogo requieren `Authorization: Bearer <token>`. Los errores de autenticación usan 401/403 y los conflictos de unicidad, relaciones o disponibilidad usan 409. No se devuelve nunca el hash de contraseña.
+Las rutas inexistentes responden 404 JSON y el JSON mal formado responde 400 JSON. Los errores internos responden 500; su stack solo se incluye fuera de producción.
 
-## Transacción y consultas
+## Validaciones
 
-`POST /api/orders` recibe `{"items":[{"productId":1,"quantity":2}]}`. En una transacción comprueba cada producto y descuenta stock mediante `updateMany` condicionado por `stock >= quantity`. Si un producto no existe responde 404; si no hay stock responde 409 y se revierte el pedido y cualquier descuento previo. `PATCH /api/orders/:id/cancel` verifica propietario y estado pendiente; la transición condicional evita devolver stock dos veces.
+1. `name` es obligatorio al crear y debe ser texto con al menos 3 caracteres.
+2. `price` es obligatorio al crear y debe ser un número mayor o igual a cero.
 
-El administrador puede filtrar pedidos por estado y fechas, paginar con `skip`/`take`, obtener el conteo y recibir `include` de cliente e ítems. El reporte usa `groupBy` para sumar unidades por producto, excluyendo pedidos cancelados.
+En PUT esos campos se validan solo si están presentes. `institution` y `category` son opcionales. Los IDs deben ser numéricos y el registro debe existir para consultar, actualizar o eliminar.
 
-## Postman
+## Arquitectura y datos
 
-Importa `postman/G1_Lab3.postman_collection.json`, selecciona `baseUrl` y ejecuta la colección en orden después de cargar el seed. La colección comprueba registro y login, roles, COMMIT, ROLLBACK por stock insuficiente, cancelación, filtros y `groupBy`. El último resultado local de Newman está en `evidencias/newman-lab3-run.txt` (25 solicitudes, 39 aserciones, 0 fallidas). El entorno para Railway está en `postman/G1_Lab3_Railway.postman_environment.json`; reemplaza el dominio de ejemplo después del despliegue y exporta el entorno desde Postman.
-
-## Despliegue Railway
-
-Sigue `RAILWAY.md`. El servicio requiere `DATABASE_URL` (referencia a la base Railway), `JWT_SECRET` distinto del local, `JWT_EXPIRES_IN=4h` y `NODE_ENV=production`. `npm start` ejecuta `prisma migrate deploy` antes de iniciar la API; `postinstall` genera Prisma Client. La URL pública y la evidencia `evidencias/railway-run.png` se agregan luego de desplegar y ejecutar Postman contra Railway.
-
-**Estado local documentado:** migración aplicada y sincronizada; seed ejecutado dos veces; smoke test con 10 escenarios y colección Newman con 25 solicitudes, 39 aserciones y 0 fallidas (reporte Newman en `evidencias/newman-lab3-run.txt`). La API y PostgreSQL no estaban activos en la última revisión local, por lo que esos resultados corresponden a ejecuciones anteriores.
-
-**Checklist de entrega:**
-
-- [x] Código, migraciones, modelo ER, README, colección Postman y reporte Newman local.
-- [ ] Guardar `evidencias/postman-local.png` con la ejecución local de la colección Lab 3.
-- [ ] Crear el servicio PostgreSQL y API en Railway, configurar variables y asignar un dominio público.
-- [ ] Ejecutar el seed contra la base Railway y la colección Postman contra la URL pública.
-- [ ] Reemplazar el dominio de ejemplo en `postman/G1_Lab3_Railway.postman_environment.json`, exportar el entorno final y guardar `evidencias/railway-run.png`.
-- [ ] Generar el ZIP final `G1_Lab3_APDAFSPORT.zip` con el proyecto, migraciones, documentación, colección, entorno y evidencias; excluir `.env`, `node_modules/` y `.git/`.
-- [ ] Entregar en Moodle el ZIP, la colección v2.1, el entorno Railway exportado, el enlace de GitHub y la URL pública.
-
-La URL pública se añadirá aquí después de comprobar el despliegue. El ZIP creado antes de completar las evidencias es solo un paquete previo y no acredita que los pasos pendientes estén realizados.
-
-## Distribución para el trabajo y sustentación del equipo
-
-La siguiente es una distribución propuesta de áreas para los cuatro integrantes. Cada persona debe revisar, probar y poder explicar su área antes de entregar; ajusten la tabla si el trabajo real se repartió de otra forma.
-
-| Integrante | Área para revisar y sustentar |
-|---|---|
-| Valeria Guaiguacundo · Persona 1 | Modelo de datos, relaciones y políticas `onDelete`; `prisma/schema.prisma`, `MODELO_ER.md` y migración. |
-| Samuel Dávalos · Persona 2 | Registro/login, bcrypt, JWT, middleware y autorización; `auth.service.js` y `src/middlewares/auth.js`. |
-| Daniel Palacios · Persona 3 | Pedidos, control de stock transaccional, cancelación y rollback; `order.service.js` y colección Postman. |
-| Brithany López · Persona 4 | Administración, consultas paginadas y agregadas, README, pruebas y preparación del despliegue. |
-
-## Uso de IA
-
-Se utilizaron asistentes de IA para revisar requisitos, explicar Prisma/JWT, detectar errores y preparar documentación y pruebas. El equipo debe validar cada cambio, ejecutar la aplicación y poder sustentar sus decisiones y resultados. La asistencia de IA no sustituye la revisión ni las pruebas de cada integrante.
-
-## Estructura relevante
+El flujo de una petición es **ruta → controlador → servicio → modelo**. El controlador delega la lógica de negocio y no lee archivos; el servicio aplica validaciones y el modelo persiste en JSON. El proyecto utiliza CommonJS (`require` / `module.exports`). En el Laboratorio 2, el almacenamiento JSON se reemplazará por Prisma.
 
 ```text
-prisma/schema.prisma          Modelos, relaciones y mapeos
-prisma/migrations/            Historial versionado de cambios
-prisma/seed.js                Datos demostrativos y cuentas de prueba
-src/routes/                   Rutas Express
-src/controllers/              Lectura HTTP y respuestas
-src/services/                 Lógica, Prisma y transacciones
-src/middlewares/auth.js       JWT y roles
-postman/                      Colección y entorno para pruebas
-evidencias/                   Capturas de ejecución
-RAILWAY.md                    Guía del despliegue
+src/
+├── app.js                 Configura Express, middlewares y prefijo /api
+├── server.js              Carga .env e inicia el servidor
+├── routes/                Rutas HTTP de la API
+├── controllers/           Lectura de petición y respuestas HTTP
+├── services/              Reglas de negocio y validaciones
+├── models/                Campos y persistencia JSON
+├── middlewares/           Logger, notFound y errorHandler
+└── utils/httpError.js     Error con estado HTTP
+data/products.json         Productos de ejemplo
+postman/                   Colección de pruebas
 ```
 
+## Pruebas en Postman
+
+Importa `postman/G1_Lab1.postman_collection.json` y ejecuta **Run collection** con el servidor activo. La colección contiene 13 solicitudes para CRUD, validaciones y errores. Ejecuta las solicitudes en orden: la creación guarda `createdId` como variable de colección para que actualización y eliminación usen el registro creado.
+
+También puedes probar los endpoints GET desde PowerShell:
+
+```powershell
+Invoke-RestMethod http://localhost:3000/api/products
+Invoke-RestMethod http://localhost:3000/api/products/1
+```
+
+## Aporte del equipo
+
+| Integrante | Qué hizo (archivos / pasos) |
+|---|---|
+| Valeria Guaiguacundo · Persona 1 | Propuesta del emprendimiento y mapa frontend–backend en `PROPUESTA.md`; modelo adaptado en `src/models/product.model.js`; datos de ejemplo en `data/products.json`. |
+| Samuel Dávalos · Persona 2 | Servicio `src/services/product.service.js`, operaciones `create`, `update` y `remove`, validaciones y manejo de errores 400 y 404. |
+| Daniel Palacios · Persona 3 | Controlador `src/controllers/product.controller.js`, cinco endpoints conectados en `src/routes/product.routes.js` y montaje de rutas en `src/routes/index.js`. |
+| Brithany López · Persona 4 | Logger y manejador de errores en `src/middlewares/`; colección CRUD y casos de error en `postman/G1_Lab1.postman_collection.json`. |
+
+## Declaración de uso de IA
+
+- Herramientas usadas: Copilot, Claude AI y ChatGPT.
+- Uso declarado por el equipo: consulta, depuración y ayuda con comandos.
+- Verificación declarada por el equipo: métodos de enrutamiento, CRUD e información del emprendimiento.
+
+## Entrega
+
+Antes de comprimir, usa el nombre `G1_Lab1_CatalogoUniformesAPDAF.zip`. La entrega incluye el código, `PROPUESTA.md`, este README y la colección exportada, sin `node_modules/` ni `.env`.
+# Laboratorio 3 · APDAF SPORT API
+
+API REST para catálogo de uniformes escolares APDAF SPORT. Incluye Prisma/PostgreSQL, relaciones 1:1, 1:N y N:M, autenticación JWT con bcrypt, transacciones de pedidos con control de stock, reportes administrativos y despliegue preparado para Render.
+
+## Ejecución
+
+1. Copiar `.env.example` a `.env` y configurar `DATABASE_URL` y `JWT_SECRET`.
+2. Ejecutar `npm ci`, `npx prisma migrate dev --name init` y `npm run db:seed`.
+3. Ejecutar `npm start`.
+
+## Credenciales de prueba
+
+- Admin: `admin@apdaf.com` / `Admin123*`
+- Cliente: `ana@correo.com` / `Ana12345*`
+
+## Endpoints principales
+
+`POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`, `GET /api/products`, `POST /api/orders`, `GET /api/orders`, `PATCH /api/orders/:id/cancel`.
+
+Admin: `GET /api/admin/orders`, `PATCH /api/admin/orders/:id/status`, `GET /api/admin/reports/top-products` (requieren rol ADMIN). Los errores usan 400, 401, 403, 404 y 409 según la rúbrica.
+
+## Relaciones y borrado
+
+User-Customer es 1:1 con `Cascade`; Customer-Order es 1:N con `Restrict`; Order-Product es N:M explícita mediante OrderItem, con `Cascade` hacia sus líneas y `Restrict` hacia productos.
+
+## Despliegue
+
+`render.yaml` crea el servicio web y PostgreSQL en Render. La colección está en `postman/GXX_Lab3.postman_collection.json` y el modelo relacional en `MODELO_ER.md`.

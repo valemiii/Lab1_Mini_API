@@ -1,68 +1,48 @@
 const { OrderStatus } = require("@prisma/client");
 const prisma = require("../db/prisma");
 const HttpError = require("../utils/httpError");
-const includeOrder = {
-  customer: { select: { id: true, fullName: true, email: true } },
-  items: { include: { product: { select: { id: true, name: true, sku: true } } } },
+
+// ADMIN SERVICE: consultas y acciones que solo hace el administrador
+
+const toInt = (value, def, max) => {
+  const n = Number.parseInt(value, 10);
+  if (Number.isNaN(n) || n < 1) return def;
+  return max ? Math.min(n, max) : n;
 };
+
 const parseStatus = (status) => {
-  if (status === undefined || status === "") return undefined;
-  if (!Object.values(OrderStatus).includes(status)) throw new HttpError(400, `status debe ser uno de: ${Object.values(OrderStatus).join(", ")}`);
+  if (status === undefined) return undefined;
+  if (!Object.values(OrderStatus).includes(status))
+    throw new HttpError(400, `status debe ser uno de: ${Object.values(OrderStatus).join(", ")}`);
   return status;
 };
-const parseDate = (value, field, endOfDay = false) => {
-  if (value === undefined || value === "") return undefined;
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) throw new HttpError(400, `${field} debe ser una fecha válida`);
-  if (/^\d{4}-\d{2}-\d{2}$/.test(value) && endOfDay) date.setUTCHours(23, 59, 59, 999);
-  return date;
-};
-const parsePositive = (value, fallback, max) => {
-  if (value === undefined || value === "") return fallback;
-  const number = Number(value);
-  if (!Number.isInteger(number) || number < 1) throw new HttpError(400, "page y limit deben ser enteros positivos");
-  return max ? Math.min(number, max) : number;
-};
+
+// Filtros + paginación + orden + conteo en una sola transacción de lectura
+// TODO Paso 3 (clase «Endpoint para listar citas con Prisma»): filtros + paginación.
+// where = { status: parseStatus(status), createdAt: { gte: from && new Date(from), lte: ... } }
+// take = toInt(limit, 10, 50); skip = (page - 1) * take
+// Usa prisma.$transaction([prisma.order.count({ where }), prisma.order.findMany({ where, include, orderBy, skip, take })])
+// y responde { page, limit, total, pages, data }
 const listOrders = async ({ status, from, to, page, limit }) => {
-  const start = parseDate(from, "from");
-  const end = parseDate(to, "to", true);
-  if (start && end && start > end) throw new HttpError(400, "from no puede ser posterior a to");
-  const currentPage = parsePositive(page, 1);
-  const pageSize = parsePositive(limit, 10, 50);
-  const selectedStatus = parseStatus(status);
-  const where = {
-    ...(selectedStatus ? { status: selectedStatus } : {}),
-    ...(start || end ? { createdAt: { ...(start ? { gte: start } : {}), ...(end ? { lte: end } : {}) } } : {}),
-  };
-  const [total, data] = await prisma.$transaction([
-    prisma.order.count({ where }),
-    prisma.order.findMany({ where, include: includeOrder, orderBy: { createdAt: "desc" }, skip: (currentPage - 1) * pageSize, take: pageSize }),
-  ]);
-  return { page: currentPage, limit: pageSize, total, pages: Math.ceil(total / pageSize), data };
+  const p = toInt(page, 1); const take = toInt(limit, 10, 50); const parsed = parseStatus(status);
+  const where = { ...(parsed ? { status: parsed } : {}), ...(from || to ? { createdAt: { ...(from ? { gte: new Date(from) } : {}), ...(to ? { lte: new Date(to) } : {}) } } : {}) };
+  const [total, data] = await prisma.$transaction([prisma.order.count({ where }), prisma.order.findMany({ where, include: { customer: true, items: { include: { product: true } } }, orderBy: { createdAt: "desc" }, skip: (p - 1) * take, take })]);
+  return { page: p, limit: take, total, pages: Math.ceil(total / take), data };
 };
+
 const updateOrderStatus = async (id, status) => {
-  const parsed = parseStatus(status);
-  if (parsed !== "DELIVERED") throw new HttpError(400, "Solo se puede marcar como DELIVERED un pedido pendiente; usa /cancel para cancelar y devolver el stock");
-  const changed = await prisma.order.updateMany({ where: { id, status: "PENDING" }, data: { status: "DELIVERED" } });
-  if (changed.count === 0) {
-    const order = await prisma.order.findUnique({ where: { id }, select: { id: true } });
-    if (!order) throw new HttpError(404, "Pedido no encontrado");
-    throw new HttpError(409, "Solo se puede entregar un pedido pendiente");
-  }
-  return prisma.order.findUnique({ where: { id }, include: includeOrder });
+  if (status === undefined) throw new HttpError(400, "Envía el nuevo status");
+  return prisma.order.update({ where: { id }, data: { status: parseStatus(status) } }); // no existe → P2025 → 404
 };
+
+// Consulta avanzada: agrupa los ítems por producto y suma unidades vendidas
+// TODO Paso 3 · consulta avanzada: prisma.orderItem.groupBy({ by: ["productId"], _sum: { quantity: true },
+// where: { order: { status: { not: "CANCELLED" } } }, orderBy: { _sum: { quantity: "desc" } }, take })
+// y agrega el nombre de cada producto → [{ productId, name, unitsSold }]
 const topProducts = async (limit) => {
-  const take = parsePositive(limit, 5, 20);
-  const groups = await prisma.orderItem.groupBy({
-    by: ["productId"],
-    where: { order: { is: { status: { not: "CANCELLED" } } } },
-    _sum: { quantity: true },
-    orderBy: { _sum: { quantity: "desc" } },
-    take,
-  });
-  if (!groups.length) return [];
-  const products = await prisma.product.findMany({ where: { id: { in: groups.map((group) => group.productId) } }, select: { id: true, name: true, sku: true } });
-  const byId = new Map(products.map((product) => [product.id, product]));
-  return groups.map((group) => ({ productId: group.productId, name: byId.get(group.productId)?.name, sku: byId.get(group.productId)?.sku, unitsSold: group._sum.quantity ?? 0 }));
+  const take = toInt(limit, 5, 50); const rows = await prisma.orderItem.groupBy({ by: ["productId"], _sum: { quantity: true }, where: { order: { status: { not: "CANCELLED" } } }, orderBy: { _sum: { quantity: "desc" } }, take });
+  const products = await prisma.product.findMany({ where: { id: { in: rows.map((r) => r.productId) } }, select: { id: true, name: true } });
+  return rows.map((r) => ({ productId: r.productId, name: products.find((p) => p.id === r.productId)?.name, unitsSold: r._sum.quantity }));
 };
+
 module.exports = { listOrders, updateOrderStatus, topProducts };
