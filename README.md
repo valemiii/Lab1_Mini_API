@@ -93,11 +93,12 @@ npm run dev                     # http://localhost:3000
 ### Despliegue (Render)
 
 - `render.yaml` crea el web service `apdaf-lab3-api` y la base `apdaf-lab3-db`; `DATABASE_URL` se toma de la base, `JWT_SECRET` se genera en Render (distinto al local) y `NODE_ENV=production`.
+- Render redespliega automáticamente cada push a `main` (Auto-Deploy). Guía paso a paso en `RENDER.md`.
 - `npm start` ejecuta `prisma migrate deploy` (migraciones automáticas), luego `node prisma/seed.js --if-empty` (siembra solo si la base está vacía, así un reinicio no borra pedidos) y levanta la API.
 
 ### Postman
 
-Importar `postman/G1_Lab3.postman_collection.json` (25 peticiones: Auth, Productos por rol, Pedidos con ROLLBACK y cancelación, Admin) y el entorno `postman/G1_Lab3_Render.postman_environment.json` (`baseUrl = https://apdaf-lab3-api.onrender.com`). **Run collection** en local y con el entorno Render. Evidencias en `evidencias/`.
+Importar `postman/G1_Lab3.postman_collection.json` (Lab 3) o `postman/G1_Taller.postman_collection.json` (Lab 3 + Taller) y el entorno `postman/G1_Lab3_Render.postman_environment.json` (`baseUrl = https://apdaf-lab3-api.onrender.com`). **Run collection** en local y con el entorno Render. Evidencias en `evidencias/`.
 
 ### Aporte de cada integrante
 
@@ -115,24 +116,68 @@ Importar `postman/G1_Lab3.postman_collection.json` (25 peticiones: Auth, Product
 - **Verificación:** el equipo ejecutó la colección de Postman en local y contra la URL pública, y revisó las FK en el SQL de `prisma/migrations/`. Cada integrante puede sustentar su parte.
 ## Taller · Nuevas funcionalidades
 
-Implementación integrada de las cuatro tarjetas solicitadas para APDAF SPORT. Se simularon cuatro ramas de desarrollo y posteriormente se integraron en `main`; el integrador consolidó una sola migración del taller.
+Cada integrante diseñó, programó y probó una tarjeta en su rama `taller/<letra>-<nombre>` y abrió su Pull Request; el integrador (Daniel Palacios) subió el schema común en la fase 1 y unió los PR en `main`. Render redespliega automáticamente al actualizar `main` (equivalente al redespliegue de Railway que pide la guía; ver la nota de despliegue al inicio).
 
-### Contrato y aporte del equipo
+| Tarjeta | Integrante | Rama | Carpeta de Postman |
+|---|---|---|---|
+| A · Reseñas | Valeria Guaiguacundo | `taller/a-valeria` | Taller · A · Valeria Guaiguacundo |
+| B · Categorías y búsqueda | Samuel Dávalos | `taller/b-samuel` | Taller · B · Samuel Dávalos |
+| C · Historial de estados | Brithany López | `taller/c-brithany` | Taller · C · Brithany López |
+| D · Mi cuenta e indicadores (integrador) | Daniel Palacios | `taller/d-daniel` | Taller · D · Daniel Palacios |
 
-| Integrante | Tarjeta | Endpoints principales | Aporte declarado |
-|---|---|---|---:|
-| Daniel Palacios | Integrador + A, B, C y D | Reseñas, categorías/búsqueda, historial de estados, mi cuenta e indicadores | 45% |
-| Valeria Guaiguacundo | A · Reseñas | `POST/GET /api/products/:id/reviews`, `DELETE /api/reviews/:id` | 20% |
-| Samuel Dávalos | B · Categorías y búsqueda | `POST/GET /api/categories`, `PUT /api/products/:id/categories`, `GET /api/products/search` | 20% |
-| Brithany López | C · Historial de estados | `PATCH /api/admin/orders/:id/status`, `GET /api/orders/:id/history` | 15% |
+### Taller · Tarjeta A · Reseñas · Valeria Guaiguacundo
 
-> Nota de integración: para efectos de revisión y demostración se implementaron las cuatro tarjetas en el entorno compartido. La distribución anterior es una declaración de aporte para la rúbrica y debe ajustarse si el equipo acuerda otros porcentajes.
+| Método | Ruta | Rol | Body | Respuestas |
+|---|---|---|---|---|
+| POST | /api/products/:id/reviews | Autenticado | `{ rating: 1-5, comment? (≤300) }` | 201 reseña con autor · 400 rating fuera de 1–5 o comment > 300 · 401 sin token · 404 producto · 409 ya reseñó |
+| GET | /api/products/:id/reviews | Público | — (query: `page`, `limit`) | 200 `{ productId, average, total, page, limit, pages, data }` · 404 producto |
+| DELETE | /api/reviews/:id | Autor o ADMIN | — | 204 · 401 · 403 no es el autor · 404 |
 
-### Tarjetas implementadas
+**Modelo:** `Review` (1:N con `User` y con `Product`), `rating` `@db.SmallInt`, `comment` `@db.VarChar(300)`, `@@unique([userId, productId])` para que un usuario reseñe un producto una sola vez (el `P2002` se traduce a 409). `onDelete: Cascade` en ambos lados porque una reseña no tiene sentido sin su autor ni sin el producto. El promedio se calcula con `aggregate({ _avg: { rating } })` y la lista, el conteo y el promedio se leen en un `$transaction` de lecturas.
+**Código:** `src/routes/review.routes.js` · `src/controllers/review.controller.js` · `src/services/review.service.js`.
 
-- **A · Reseñas:** relación 1:N con `User` y `Product`, restricción única compuesta, promedio con `_avg`, paginación y control de autor/ADMIN.
-- **B · Categorías y búsqueda:** relación N:M implícita, reemplazo con `set`, filtros combinables, búsqueda sin distinguir mayúsculas, rango de precio, orden y paginación.
-- **C · Estados:** enum `CONFIRMED`, transiciones válidas, `OrderStatusHistory`, `$transaction`, rollback de stock al cancelar y consulta de historial.
-- **D · Cuenta e indicadores:** actualización anidada de usuario/cliente, cambio de contraseña con bcrypt, `lastLoginAt` e indicadores administrativos con `groupBy`, `aggregate` y `$transaction`.
+### Taller · Tarjeta B · Categorías y búsqueda · Samuel Dávalos
 
-La migración integrada está en `prisma/migrations/20261029000000_taller/`. La colección específica de pruebas del taller se entrega junto con la colección del Lab 3.
+| Método | Ruta | Rol | Body | Respuestas |
+|---|---|---|---|---|
+| POST | /api/categories | ADMIN | `{ name }` | 201 categoría · 400 name vacío · 401 · 403 · 409 duplicada |
+| GET | /api/categories | Público | — | 200 lista con `_count` de productos |
+| PUT | /api/products/:id/categories | ADMIN | `{ categoryIds: [1, 2] }` | 200 producto con sus categorías · 400 no es arreglo de enteros · 401 · 403 · 404 producto o categoría inexistente |
+| GET | /api/products/search | Público | — (query: `q`, `category`, `min`, `max`, `sort`, `page`, `limit`) | 200 `{ page, limit, total, pages, data }` · 400 sort inválido |
+
+**Modelo:** relación N:M implícita `Product.categories ↔ Category.taggedProducts` (`@relation("ProductCategories")`); Prisma usa la tabla intermedia `_ProductCategories` con `ON DELETE CASCADE` en ambas FK (borrar una categoría o un producto solo borra el vínculo). Se nombra la relación porque `Category` ya tenía la relación 1:N del Lab 3. El reemplazo usa `set`, la búsqueda combina `contains` + `mode: "insensitive"`, `categories: { some: … }`, rango `gte/lte` y orden dinámico (`price_asc`, `price_desc`, `name`). `/search` se declara antes de `/:id`.
+**Código:** `src/routes/category.routes.js` · `src/controllers/category.controller.js` · `src/services/category.service.js` · `src/routes/product.routes.js`.
+
+### Taller · Tarjeta C · Historial de estados · Brithany López
+
+| Método | Ruta | Rol | Body | Respuestas |
+|---|---|---|---|---|
+| PATCH | /api/admin/orders/:id/status | ADMIN | `{ status, note? (≤200) }` | 200 pedido con historial · 400 status inválido · 401 · 403 · 404 · 409 transición no permitida o el pedido cambió mientras tanto |
+| GET | /api/orders/:id/history | Dueño o ADMIN | — | 200 `{ orderId, status, history }` · 401 · 403 · 404 |
+
+**Transiciones:** `PENDING → CONFIRMED → DELIVERED` y `PENDING | CONFIRMED → CANCELLED`.
+**Modelo:** enum `OrderStatus` con `CONFIRMED`; `OrderStatusHistory` con dos relaciones 1:N (`Order` con `onDelete: Cascade`, porque el historial pertenece al pedido; `User` como `changedBy` con `onDelete: Restrict`, para no perder quién hizo cada cambio) y `@@index([orderId])`. En un `$transaction` interactivo: `updateMany` condicionado al estado actual (si `count ≠ 1` → 409 y ROLLBACK), devolución de stock si pasa a `CANCELLED` y registro en el historial; se guardan juntos o ninguno. **Reto opcional:** la cancelación que hace el propio cliente (`PATCH /api/orders/:id/cancel`) también queda en el historial.
+**Código:** `src/services/admin.service.js` · `src/services/order.service.js` · `admin` y `order` routes/controllers.
+
+### Taller · Tarjeta D · Mi cuenta e indicadores · Daniel Palacios (integrador)
+
+| Método | Ruta | Rol | Body | Respuestas |
+|---|---|---|---|---|
+| GET | /api/me | Autenticado | — | 200 usuario + perfil 1:1 con `_count` de pedidos y `lastLoginAt`, sin contraseña · 401 |
+| PATCH | /api/me | Autenticado | `{ name?, phone? }` | 200 · 400 name < 3, phone no numérico de 7–15 dígitos o body vacío · 401 |
+| PATCH | /api/me/password | Autenticado | `{ currentPassword, newPassword }` | 204 · 400 nueva < 8 o igual a la actual · 401 contraseña actual incorrecta |
+| GET | /api/admin/stats | ADMIN | — (query: `from`, `to`) | 200 `{ ordersByStatus, revenue, topCustomers }` · 400 fecha inválida · 401 · 403 |
+
+**Modelo:** `User.lastLoginAt` (`@map("last_login_at")`), actualizado en cada login. `PATCH /api/me` usa una escritura anidada (`customer: { update: … }`) para cambiar `User` y su perfil 1:1 en una sola operación. La contraseña se valida con `bcrypt.compare` y se guarda con `bcrypt.hash`. Las estadísticas se leen en un `$transaction` de lecturas: `groupBy` por estado, `aggregate` (`_sum`, `_avg`) de los pedidos `DELIVERED` y top 3 clientes por gasto con `groupBy` + `orderBy _sum`.
+**Código:** `src/routes/me.routes.js` · `src/controllers/me.controller.js` · `src/services/me.service.js` · `src/services/auth.service.js` · `src/services/admin.service.js`.
+
+### Migraciones del taller
+
+- `20261029000000_taller`: migración única del taller con los modelos de las cuatro tarjetas (fase 1).
+- `20261029120000_taller_fk_categorias`: segunda migración del integrador (permitida por la guía cuando falta algo): agrega las FK de la tabla N:M `_ProductCategories`, que la primera no creó.
+
+### Pruebas (Postman)
+
+`postman/G1_Taller.postman_collection.json` contiene las carpetas del **Lab 3** y las cuatro del **Taller** (75 peticiones, cada una con `pm.test` sobre el código y al menos un campo). La colección es autosuficiente: registra un usuario, inicia sesión como ADMIN del seed, guarda `token`, `adminToken`, `reviewId`, `categoryId`, `orderId2` con `pm.collectionVariables.set` y crea un segundo usuario para los casos 403. Ejecutar con **Run collection** en orden, con `baseUrl` local o el entorno `postman/G1_Lab3_Render.postman_environment.json`.
+
+Resultado en local (`evidencias/taller-local-run.txt`): 77 requests, 127 aserciones, 0 fallos.

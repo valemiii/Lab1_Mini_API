@@ -60,8 +60,13 @@ const cancel = async (userId, orderId) => {
     if (!order) throw new HttpError(404, "Pedido no encontrado");
     if (order.customerId !== customer.id) throw new HttpError(403, "El pedido no pertenece al usuario");
     if (order.status !== "PENDING") throw new HttpError(409, "Solo se pueden cancelar pedidos pendientes");
+    // updateMany condicionado: si otro proceso cambió el estado, no se cancela dos veces
+    const updated = await tx.order.updateMany({ where: { id: orderId, status: "PENDING" }, data: { status: "CANCELLED" } });
+    if (updated.count !== 1) throw new HttpError(409, "El pedido cambió mientras se procesaba");
     for (const item of order.items) await tx.product.update({ where: { id: item.productId }, data: { stock: { increment: item.quantity } } });
-    return tx.order.update({ where: { id: orderId }, data: { status: "CANCELLED" }, include: orderInclude });
+    // Reto opcional tarjeta C: la cancelación del cliente también queda en el historial
+    await tx.orderStatusHistory.create({ data: { orderId, fromStatus: "PENDING", toStatus: "CANCELLED", note: "Cancelado por el cliente", changedById: userId } });
+    return tx.order.findUnique({ where: { id: orderId }, include: orderInclude });
   });
 };
 
