@@ -1,30 +1,26 @@
 {
-  "name": "g1-lab3-apdaf-sport",
-  "version": "1.0.0",
-  "description": "Laboratorio 3 · Relaciones, autenticación y pedidos APDAF SPORT",
+  "name": "apdaf-lab3-api",
+  "version": "3.0.0",
+  "description": "Laboratorio 3: relaciones, autenticación JWT, transacciones y consultas avanzadas",
   "main": "src/server.js",
   "scripts": {
     "dev": "node --watch src/server.js",
-    "start": "prisma migrate deploy && node src/server.js",
+    "start": "prisma migrate deploy && node prisma/seed.js --if-empty && node src/server.js",
     "test:smoke": "node scripts/smoke-test.js",
-    "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
-    "db:push": "prisma db push",
-    "db:seed": "prisma db seed",
-    "postinstall": "prisma generate",
-    "db:studio": "prisma studio"
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:seed": "node prisma/seed.js"
   },
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
-    "@prisma/adapter-pg": "7.10.1",
-    "@prisma/client": "7.10.1",
-    "bcryptjs": "^3.0.2",
+    "@prisma/client": "^6.16.2",
+    "bcryptjs": "^2.4.3",
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
-    "pg": "8.23.1",
-    "prisma": "7.10.1"
+    "prisma": "^6.16.2"
   }
 }

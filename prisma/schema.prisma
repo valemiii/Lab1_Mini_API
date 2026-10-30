@@ -1,9 +1,19 @@
+// Lab 3 · Relaciones, mapeo y consultas avanzadas · APDAF SPORT
+// Grupo: G1 · Emprendimiento: catálogo y pedidos de uniformes escolares APDAF SPORT
+//
+// Relaciones (ver MODELO_ER.md para la justificación de cada onDelete):
+//   · User 1:1 Customer        → onDelete: Cascade  (FK user_id @unique)
+//   · Customer 1:N Order       → onDelete: Restrict
+//   · Category 1:N Product     → onDelete: SetNull
+//   · Order N:M Product        → explícita con OrderItem (Cascade hacia Order, Restrict hacia Product)
+
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 enum Role {
@@ -13,45 +23,57 @@ enum Role {
 
 enum OrderStatus {
   PENDING
+  CONFIRMED
   DELIVERED
   CANCELLED
 }
 
+// Usuario que se autentica con JWT
 model User {
   id        Int       @id @default(autoincrement())
   email     String    @unique @db.VarChar(120)
-  password  String    @map("password_hash")
+  password  String    @map("password_hash") // hash de bcrypt, nunca la clave en texto plano
   name      String    @db.VarChar(100)
   role      Role      @default(USER)
   createdAt DateTime  @default(now()) @map("created_at")
-  customer  Customer?
+  lastLoginAt DateTime? @map("last_login_at")
+  customer  Customer? // 1:1 → lado sin FK
+  reviews Review[]
+  statusChanges OrderStatusHistory[]
 
   @@map("users")
 }
 
+// Perfil de cliente: se crea junto con el usuario al registrarse (escritura anidada)
 model Customer {
   id        Int      @id @default(autoincrement())
   fullName  String   @map("full_name") @db.VarChar(100)
   email     String   @unique @db.VarChar(120)
   phone     String?  @db.VarChar(15)
   createdAt DateTime @default(now()) @map("created_at")
-  userId    Int      @unique @map("user_id")
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  orders    Order[]
+
+  // 1:1 con User: la FK es única. Si se borra el usuario, se borra su perfil
+  userId Int  @unique @map("user_id")
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  orders Order[] // 1:N
 
   @@map("customers")
 }
 
+// Categorías del catálogo (camisas, pantalones, chompas…)
 model Category {
   id          Int       @id @default(autoincrement())
   name        String    @unique @db.VarChar(80)
   description String?
   active      Boolean   @default(true)
-  products    Product[]
+  products    Product[] // 1:N
+  taggedProducts Product[] @relation("ProductCategories")
 
   @@map("categories")
 }
 
+// Entidad principal del Lab 2, ahora relacionada
 model Product {
   id          Int         @id @default(autoincrement())
   name        String      @db.VarChar(100)
@@ -60,16 +82,19 @@ model Product {
   notes       String?
   createdAt   DateTime    @default(now()) @map("created_at")
   institution String?
-  category    String?
-  stock       Int         @default(0)
+  category    String? // etiqueta de texto heredada del Lab 2
+  stock       Int         @default(0) // recurso limitado que consume el pedido
   categoryId  Int?        @map("category_id")
   categoryRef Category?   @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  items       OrderItem[]
+  categories Category[] @relation("ProductCategories")
+  reviews Review[]
+  items       OrderItem[] // N:M con Order a través de OrderItem
 
   @@index([categoryId])
   @@map("products")
 }
 
+// 1:N: un cliente tiene muchos pedidos; un pedido pertenece a un cliente
 model Order {
   id         Int         @id @default(autoincrement())
   status     OrderStatus @default(PENDING)
@@ -78,12 +103,41 @@ model Order {
   customerId Int         @map("customer_id")
   customer   Customer    @relation(fields: [customerId], references: [id], onDelete: Restrict)
   items      OrderItem[]
+  history    OrderStatusHistory[]
 
-  @@index([customerId, createdAt])
-  @@index([status, createdAt])
+  @@index([customerId, createdAt]) // "mis pedidos" ordenados por fecha
+  @@index([status, createdAt]) // filtros del módulo admin
   @@map("orders")
 }
 
+model Review {
+  id Int @id @default(autoincrement())
+  rating Int @db.SmallInt
+  comment String? @db.VarChar(300)
+  createdAt DateTime @default(now()) @map("created_at")
+  userId Int @map("user_id")
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId Int @map("product_id")
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  @@unique([userId, productId])
+  @@map("reviews")
+}
+
+model OrderStatusHistory {
+  id Int @id @default(autoincrement())
+  orderId Int @map("order_id")
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  fromStatus OrderStatus @map("from_status")
+  toStatus OrderStatus @map("to_status")
+  note String? @db.VarChar(200)
+  changedById Int @map("changed_by_id")
+  changedBy User @relation(fields: [changedById], references: [id], onDelete: Restrict)
+  createdAt DateTime @default(now()) @map("created_at")
+  @@index([orderId])
+  @@map("order_status_history")
+}
+
+// N:M explícita: la tabla intermedia guarda datos propios (cantidad y precio histórico)
 model OrderItem {
   orderId   Int     @map("order_id")
   productId Int     @map("product_id")
@@ -92,6 +146,6 @@ model OrderItem {
   order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
 
-  @@id([orderId, productId])
+  @@id([orderId, productId]) // clave primaria compuesta: un producto una sola vez por pedido
   @@map("order_items")
 }
