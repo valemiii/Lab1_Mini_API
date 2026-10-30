@@ -23,6 +23,7 @@ enum Role {
 
 enum OrderStatus {
   PENDING
+  CONFIRMED
   DELIVERED
   CANCELLED
 }
@@ -35,7 +36,10 @@ model User {
   name      String    @db.VarChar(100)
   role      Role      @default(USER)
   createdAt DateTime  @default(now()) @map("created_at")
+  lastLoginAt DateTime? @map("last_login_at")
   customer  Customer? // 1:1 → lado sin FK
+  reviews Review[]
+  statusChanges OrderStatusHistory[]
 
   @@map("users")
 }
@@ -64,6 +68,7 @@ model Category {
   description String?
   active      Boolean   @default(true)
   products    Product[] // 1:N
+  taggedProducts Product[] @relation("ProductCategories")
 
   @@map("categories")
 }
@@ -81,6 +86,8 @@ model Product {
   stock       Int         @default(0) // recurso limitado que consume el pedido
   categoryId  Int?        @map("category_id")
   categoryRef Category?   @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  categories Category[] @relation("ProductCategories")
+  reviews Review[]
   items       OrderItem[] // N:M con Order a través de OrderItem
 
   @@index([categoryId])
@@ -96,10 +103,38 @@ model Order {
   customerId Int         @map("customer_id")
   customer   Customer    @relation(fields: [customerId], references: [id], onDelete: Restrict)
   items      OrderItem[]
+  history    OrderStatusHistory[]
 
   @@index([customerId, createdAt]) // "mis pedidos" ordenados por fecha
   @@index([status, createdAt]) // filtros del módulo admin
   @@map("orders")
+}
+
+model Review {
+  id Int @id @default(autoincrement())
+  rating Int @db.SmallInt
+  comment String? @db.VarChar(300)
+  createdAt DateTime @default(now()) @map("created_at")
+  userId Int @map("user_id")
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId Int @map("product_id")
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  @@unique([userId, productId])
+  @@map("reviews")
+}
+
+model OrderStatusHistory {
+  id Int @id @default(autoincrement())
+  orderId Int @map("order_id")
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  fromStatus OrderStatus @map("from_status")
+  toStatus OrderStatus @map("to_status")
+  note String? @db.VarChar(200)
+  changedById Int @map("changed_by_id")
+  changedBy User @relation(fields: [changedById], references: [id], onDelete: Restrict)
+  createdAt DateTime @default(now()) @map("created_at")
+  @@index([orderId])
+  @@map("order_status_history")
 }
 
 // N:M explícita: la tabla intermedia guarda datos propios (cantidad y precio histórico)

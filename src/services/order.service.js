@@ -50,6 +50,8 @@ const listByUser = async (userId) => {
   });
 };
 
+const history = async (userId, role, orderId) => { const order=await prisma.order.findUnique({where:{id:orderId},select:{id:true,status:true,customer:{select:{userId:true}},history:{orderBy:{createdAt:'asc'},include:{changedBy:{select:{name:true}}}}}}); if(!order)throw new HttpError(404,'Pedido no encontrado'); if(role!=='ADMIN'&&order.customer.userId!==userId)throw new HttpError(403,'No puede consultar este pedido'); return {orderId:order.id,status:order.status,history:order.history}; };
+
 // TRANSACCIÓN: cambia el estado y devuelve el stock de cada ítem
 const cancel = async (userId, orderId) => {
   const customer = await customerOf(userId);
@@ -63,4 +65,4 @@ const cancel = async (userId, orderId) => {
   });
 };
 
-module.exports = { create, listByUser, cancel };
+module.exports = { create, listByUser, cancel, history };

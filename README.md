@@ -113,3 +113,26 @@ Importar `postman/G1_Lab3.postman_collection.json` (25 peticiones: Auth, Product
 - **Herramientas:** GitHub Copilot, ChatGPT y Claude.
 - **Para qué:** consultar la sintaxis de relaciones y `$transaction` de Prisma, entender errores de migración (enums duplicados en el despliegue), revisar la entrega contra la rúbrica y alinear `schema.prisma` con las migraciones ya aplicadas en Render, redactar este README y `MODELO_ER.md`.
 - **Verificación:** el equipo ejecutó la colección de Postman en local y contra la URL pública, y revisó las FK en el SQL de `prisma/migrations/`. Cada integrante puede sustentar su parte.
+## Taller · Nuevas funcionalidades
+
+Implementación integrada de las cuatro tarjetas solicitadas para APDAF SPORT. Se simularon cuatro ramas de desarrollo y posteriormente se integraron en `main`; el integrador consolidó una sola migración del taller.
+
+### Contrato y aporte del equipo
+
+| Integrante | Tarjeta | Endpoints principales | Aporte declarado |
+|---|---|---|---:|
+| Daniel Palacios | Integrador + A, B, C y D | Reseñas, categorías/búsqueda, historial de estados, mi cuenta e indicadores | 45% |
+| Valeria Guaiguacundo | A · Reseñas | `POST/GET /api/products/:id/reviews`, `DELETE /api/reviews/:id` | 20% |
+| Samuel Dávalos | B · Categorías y búsqueda | `POST/GET /api/categories`, `PUT /api/products/:id/categories`, `GET /api/products/search` | 20% |
+| Brithany López | C · Historial de estados | `PATCH /api/admin/orders/:id/status`, `GET /api/orders/:id/history` | 15% |
+
+> Nota de integración: para efectos de revisión y demostración se implementaron las cuatro tarjetas en el entorno compartido. La distribución anterior es una declaración de aporte para la rúbrica y debe ajustarse si el equipo acuerda otros porcentajes.
+
+### Tarjetas implementadas
+
+- **A · Reseñas:** relación 1:N con `User` y `Product`, restricción única compuesta, promedio con `_avg`, paginación y control de autor/ADMIN.
+- **B · Categorías y búsqueda:** relación N:M implícita, reemplazo con `set`, filtros combinables, búsqueda sin distinguir mayúsculas, rango de precio, orden y paginación.
+- **C · Estados:** enum `CONFIRMED`, transiciones válidas, `OrderStatusHistory`, `$transaction`, rollback de stock al cancelar y consulta de historial.
+- **D · Cuenta e indicadores:** actualización anidada de usuario/cliente, cambio de contraseña con bcrypt, `lastLoginAt` e indicadores administrativos con `groupBy`, `aggregate` y `$transaction`.
+
+La migración integrada está en `prisma/migrations/20261029000000_taller/`. La colección específica de pruebas del taller se entrega junto con la colección del Lab 3.

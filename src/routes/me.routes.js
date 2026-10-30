@@ -1,0 +1,1 @@
+const {Router}=require('express'); const c=require('../controllers/me.controller'); const {authenticateToken}=require('../middlewares/auth'); const r=Router(); r.use(authenticateToken); r.get('/',c.get); r.patch('/',c.update); r.patch('/password',c.password); module.exports=r;

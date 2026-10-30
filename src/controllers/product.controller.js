@@ -1,4 +1,5 @@
 const productService = require("../services/product.service");
+const categoryService = require("../services/category.service");
 const HttpError = require("../utils/httpError");
 
 // CONTROLADOR: lee la petición (params, body), llama al servicio y decide código + JSON.
@@ -67,4 +68,7 @@ const createMany = async (req, res, next) => {
   }
 };
 
-module.exports = { list, getById, create, update, remove, createMany };
+const search = async (req,res,next) => { try { res.json(await categoryService.search(req.query)); } catch (err) { next(err); } };
+const setCategories = async (req,res,next) => { try { res.json(await categoryService.setProductCategories(parseId(req), req.body?.categoryIds)); } catch (err) { next(err); } };
+
+module.exports = { list, getById, create, update, remove, createMany, search, setCategories };

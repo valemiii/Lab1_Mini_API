@@ -25,9 +25,11 @@ const listOrders = async ({ status, from, to, page, limit }) => {
   return { page: p, limit: take, total, pages: Math.ceil(total / take), data };
 };
 
-const updateOrderStatus = async (id, status) => {
+const updateOrderStatus = async (id, status, note, changedById) => {
   if (status === undefined) throw new HttpError(400, "Envía el nuevo status");
-  return prisma.order.update({ where: { id }, data: { status: parseStatus(status) } }); // no existe → P2025 → 404
+  const next = parseStatus(status);
+  const allowed = { PENDING: ['CONFIRMED','CANCELLED'], CONFIRMED: ['DELIVERED','CANCELLED'], DELIVERED: [], CANCELLED: [] };
+  return prisma.$transaction(async tx => { const order=await tx.order.findUnique({where:{id}}); if(!order)throw new HttpError(404,'Pedido no encontrado'); if(!allowed[order.status].includes(next))throw new HttpError(409,`Transición no permitida: ${order.status} → ${next}`); const updated=await tx.order.updateMany({where:{id,status:order.status},data:{status:next}}); if(updated.count!==1)throw new HttpError(409,'El pedido cambió mientras se procesaba'); if(next==='CANCELLED') for(const item of await tx.orderItem.findMany({where:{orderId:id}})) await tx.product.update({where:{id:item.productId},data:{stock:{increment:item.quantity}}}); await tx.orderStatusHistory.create({data:{orderId:id,fromStatus:order.status,toStatus:next,note,changedById}}); return tx.order.findUnique({where:{id},include:{history:{orderBy:{createdAt:'asc'}}}}); });
 };
 
 // Consulta avanzada: agrupa los ítems por producto y suma unidades vendidas
@@ -37,4 +39,6 @@ const topProducts = async (limit) => {
   return rows.map((r) => ({ productId: r.productId, name: products.find((p) => p.id === r.productId)?.name, unitsSold: r._sum.quantity }));
 };
 
-module.exports = { listOrders, updateOrderStatus, topProducts };
+const stats = async ({from,to}) => { const date={...(from?{gte:new Date(from)}:{}),...(to?{lte:new Date(to)}:{})}; if((from&&Number.isNaN(date.gte.getTime()))||(to&&Number.isNaN(date.lte.getTime())))throw new HttpError(400,'Fecha inválida'); const where=from||to?{createdAt:date}:{}; const [ordersByStatus,revenue,topCustomers]=await prisma.$transaction([prisma.order.groupBy({by:['status'],where,_count:{_all:true}}),prisma.order.aggregate({where:{...where,status:'DELIVERED'},_sum:{total:true},_avg:{total:true}}),prisma.order.groupBy({by:['customerId'],where,status:'DELIVERED',_sum:{total:true},orderBy:{_sum:{total:'desc'}},take:3})]); return {ordersByStatus,revenue:{total:revenue._sum.total||0,average:revenue._avg.total||0},topCustomers}; };
+
+module.exports = { listOrders, updateOrderStatus, topProducts, stats };

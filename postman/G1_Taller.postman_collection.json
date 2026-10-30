@@ -1,0 +1,26 @@
+{
+  "info": { "name": "G1 Taller · cuatro tarjetas", "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json" },
+  "variable": [{"key":"baseUrl","value":"https://apdaf-lab3-api.onrender.com"},{"key":"productId","value":"1"},{"key":"reviewId","value":""},{"key":"orderId","value":"1"}],
+  "item": [
+    {"name":"A · Reseñas","item":[
+      {"name":"Crear reseña (201)","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"url":"{{baseUrl}}/api/products/{{productId}}/reviews","body":{"mode":"raw","raw":"{\"rating\":5,\"comment\":\"Excelente calidad\"}"},"auth":{"type":"bearer","bearer":[{"key":"token","value":"{{token}}","type":"string"}]}},"event":[{"listen":"test","script":{"exec":["pm.test('201',()=>pm.response.to.have.status(201));","pm.collectionVariables.set('reviewId',pm.response.json().id);"]}}]},
+      {"name":"Listar reseñas (200)","request":{"method":"GET","url":"{{baseUrl}}/api/products/{{productId}}/reviews?page=1&limit=10"},"event":[{"listen":"test","script":{"exec":["pm.test('200',()=>pm.response.to.have.status(200));","pm.test('paginación',()=>pm.expect(pm.response.json()).to.include.keys('average','total','data')); "]}}]},
+      {"name":"Duplicada (409)","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"url":"{{baseUrl}}/api/products/{{productId}}/reviews","body":{"mode":"raw","raw":"{\"rating\":5}"},"auth":{"type":"bearer","bearer":[{"key":"token","value":"{{token}}","type":"string"}]}},"event":[{"listen":"test","script":{"exec":["pm.test('409',()=>pm.response.to.have.status(409));"]}}]}
+    ]},
+    {"name":"B · Categorías y búsqueda","item":[
+      {"name":"Listar categorías (200)","request":{"method":"GET","url":"{{baseUrl}}/api/categories"},"event":[{"listen":"test","script":{"exec":["pm.test('200',()=>pm.response.to.have.status(200));","pm.test('conteo',()=>pm.expect(pm.response.json()[0]).to.have.property('_count')); "]}}]},
+      {"name":"Búsqueda por nombre y precio (200)","request":{"method":"GET","url":"{{baseUrl}}/api/products/search?q=APDAF&min=1&max=50&sort=price_asc&page=1&limit=10"},"event":[{"listen":"test","script":{"exec":["pm.test('200',()=>pm.response.to.have.status(200));","pm.test('respuesta paginada',()=>pm.expect(pm.response.json()).to.include.keys('page','total','data')); "]}}]},
+      {"name":"Orden inválido (400)","request":{"method":"GET","url":"{{baseUrl}}/api/products/search?sort=bad"},"event":[{"listen":"test","script":{"exec":["pm.test('400',()=>pm.response.to.have.status(400));"]}}]}
+    ]},
+    {"name":"C · Historial de estados","item":[
+      {"name":"Confirmar pedido (200)","request":{"method":"PATCH","header":[{"key":"Content-Type","value":"application/json"}],"url":"{{baseUrl}}/api/admin/orders/{{orderId}}/status","body":{"mode":"raw","raw":"{\"status\":\"CONFIRMED\",\"note\":\"Validado por administración\"}"},"auth":{"type":"bearer","bearer":[{"key":"token","value":"{{adminToken}}","type":"string"}]}},"event":[{"listen":"test","script":{"exec":["pm.test('200',()=>pm.response.to.have.status(200));","pm.test('estado',()=>pm.expect(pm.response.json().status).to.eql('CONFIRMED')); "]}}]},
+      {"name":"Historial (200)","request":{"method":"GET","url":"{{baseUrl}}/api/orders/{{orderId}}/history","auth":{"type":"bearer","bearer":[{"key":"token","value":"{{adminToken}}","type":"string"}]}},"event":[{"listen":"test","script":{"exec":["pm.test('200',()=>pm.response.to.have.status(200));","pm.test('history',()=>pm.expect(pm.response.json()).to.have.property('history')); "]}}]},
+      {"name":"Transición inválida (409)","request":{"method":"PATCH","header":[{"key":"Content-Type","value":"application/json"}],"url":"{{baseUrl}}/api/admin/orders/{{orderId}}/status","body":{"mode":"raw","raw":"{\"status\":\"PENDING\"}"},"auth":{"type":"bearer","bearer":[{"key":"token","value":"{{adminToken}}","type":"string"}]}},"event":[{"listen":"test","script":{"exec":["pm.test('409',()=>pm.response.to.have.status(409));"]}}]}
+    ]},
+    {"name":"D · Mi cuenta e indicadores","item":[
+      {"name":"Mi cuenta (200)","request":{"method":"GET","url":"{{baseUrl}}/api/me","auth":{"type":"bearer","bearer":[{"key":"token","value":"{{token}}","type":"string"}]}},"event":[{"listen":"test","script":{"exec":["pm.test('200',()=>pm.response.to.have.status(200));","pm.test('sin password',()=>pm.expect(pm.response.json()).to.not.have.property('password')); "]}}]},
+      {"name":"Actualizar cuenta inválida (400)","request":{"method":"PATCH","header":[{"key":"Content-Type","value":"application/json"}],"url":"{{baseUrl}}/api/me","body":{"mode":"raw","raw":"{\"name\":\"A\"}"},"auth":{"type":"bearer","bearer":[{"key":"token","value":"{{token}}","type":"string"}]}},"event":[{"listen":"test","script":{"exec":["pm.test('400',()=>pm.response.to.have.status(400));"]}}]},
+      {"name":"Estadísticas admin (200)","request":{"method":"GET","url":"{{baseUrl}}/api/admin/stats","auth":{"type":"bearer","bearer":[{"key":"token","value":"{{adminToken}}","type":"string"}]}},"event":[{"listen":"test","script":{"exec":["pm.test('200',()=>pm.response.to.have.status(200));","pm.test('indicadores',()=>pm.expect(pm.response.json()).to.include.keys('ordersByStatus','revenue','topCustomers')); "]}}]}
+    ]}
+  ]
+}
