@@ -1,4 +1,4 @@
-# Laboratorio 3 · Relaciones, autenticación y despliegue · APDAF SPORT
+# Laboratorio 3 y Taller · Relaciones, autenticación y despliegue · APDAF SPORT
 
 **Desarrollo Web Avanzado (A0R04) · ESPE · Grupo G1**
 
@@ -13,7 +13,7 @@
 
 API REST del catálogo de uniformes APDAF SPORT con Express + Prisma + PostgreSQL: autenticación JWT con bcrypt, roles USER/ADMIN, relaciones 1:1, 1:N y N:M, pedidos con transacción que consume stock, módulo de administración con consultas avanzadas y despliegue en Render + PostgreSQL de Render.
 
-> **Despliegue:** se usa **Render** (web service + PostgreSQL) en lugar de Railway, opción aceptada en el enunciado ("Render + Neon con la misma colección y la URL pública en el README"). La configuración está en `render.yaml`.
+> **Despliegue:** la API y la base PostgreSQL de esta configuración están en Render (`render.yaml`). El enunciado menciona Render + Neon como alternativa a Railway; confirmar con el docente si la base PostgreSQL de Render satisface esa alternativa.
 
 ## Lab 3
 
@@ -68,15 +68,15 @@ Detalle completo en [`MODELO_ER.md`](MODELO_ER.md).
 ```text
 src/
 ├── app.js / server.js
-├── routes/        index, auth, products, orders, admin
-├── controllers/   auth, product, order, admin
-├── services/      auth (bcrypt + JWT), product, order ($transaction), admin (filtros, groupBy)
-├── middlewares/   auth (authenticateToken, requireRole), errorHandler (P2002/P2003 → 409, P2025 → 404), logger, notFound
+├── routes/        index, auth, product, order, admin, category, review, me
+├── controllers/   auth, product, order, admin, category, review, me
+├── services/      auth (bcrypt + JWT), product, order (transacciones e historial), admin (filtros y reportes), category, review, me
+├── middlewares/   auth (authenticateToken, requireRole), errorHandler, logger, notFound
 ├── db/prisma.js
 └── utils/httpError.js
 prisma/            schema.prisma, migrations/, seed.js
-postman/           G1_Lab3.postman_collection.json + G1_Lab3_Render.postman_environment.json
-evidencias/        capturas y salida de Newman
+postman/           colecciones G1_Lab3 y G1_Taller, entorno G1_Lab3_Render
+evidencias/        resultados Newman local y Render, capturas
 ```
 
 ### Ejecución local
@@ -100,30 +100,33 @@ npm run dev                     # http://localhost:3000
 
 Importar `postman/G1_Lab3.postman_collection.json` (Lab 3) o `postman/G1_Taller.postman_collection.json` (Lab 3 + Taller) y el entorno `postman/G1_Lab3_Render.postman_environment.json` (`baseUrl = https://apdaf-lab3-api.onrender.com`). **Run collection** en local y con el entorno Render. Evidencias en `evidencias/`.
 
-### Aporte de cada integrante
+### Distribución del trabajo del Lab 3
+
+Esta tabla resume la distribución acordada para revisar y sustentar el laboratorio. Ajústenla si el aporte real del equipo fue distinto.
 
 | Integrante | Aporte en el Lab 3 |
 |---|---|
 | Valeria Guaiguacundo | Relaciones y mapeo: `prisma/schema.prisma`, migraciones, `MODELO_ER.md`, `prisma/seed.js`. |
-| Samuel Dávalos | Pedidos con transacción: `src/services/order.service.js` (stock con `updateMany` condicional, 409/ROLLBACK, cancelación), `order.routes.js`, `order.controller.js`. |
-| Daniel Palacios | Autenticación en capas: `auth.routes.js`, `auth.controller.js`, `auth.service.js`, `middlewares/auth.js` (`requireRole`); despliegue en Render (`render.yaml`). |
+| Samuel Dávalos | Autenticación en capas: `auth.routes.js`, `auth.controller.js`, `auth.service.js`, `middlewares/auth.js` (`requireRole`). |
+| Daniel Palacios | Pedidos con transacción: `src/services/order.service.js` (stock con `updateMany` condicional, 409/ROLLBACK, cancelación), `order.routes.js`, `order.controller.js`. |
 | Brithany López | Módulo admin (`admin.service.js`: filtros, paginación, `groupBy`), `errorHandler.js`, colección y entorno de Postman, evidencias. |
 
 ### Declaración de uso de IA
 
 - **Herramientas:** GitHub Copilot, ChatGPT y Claude.
 - **Para qué:** consultar la sintaxis de relaciones y `$transaction` de Prisma, entender errores de migración (enums duplicados en el despliegue), revisar la entrega contra la rúbrica y alinear `schema.prisma` con las migraciones ya aplicadas en Render, redactar este README y `MODELO_ER.md`.
-- **Verificación:** el equipo ejecutó la colección de Postman en local y contra la URL pública, y revisó las FK en el SQL de `prisma/migrations/`. Cada integrante puede sustentar su parte.
+- **Verificación documentada:** `evidencias/taller-local-run.txt` registra la colección integrada en local (77 solicitudes, 127 aserciones y 0 fallos). `evidencias/render-run.txt` registra la colección de Lab 3 contra Render (24 solicitudes, 39 aserciones y 0 fallos). La colección integrada del Taller no tiene un reporte de ejecución en Render en esta carpeta. También se revisaron las FK en el SQL de `prisma/migrations/`.
+
 ## Taller · Nuevas funcionalidades
 
-Cada integrante diseñó, programó y probó una tarjeta en su rama `taller/<letra>-<nombre>` y abrió su Pull Request; el integrador (Daniel Palacios) subió el schema común en la fase 1 y unió los PR en `main`. Render redespliega automáticamente al actualizar `main` (equivalente al redespliegue de Railway que pide la guía; ver la nota de despliegue al inicio).
+Esta sección describe las cuatro tarjetas integradas y la distribución del equipo para revisarlas y sustentarlas. Render redespliega automáticamente al actualizar `main`.
 
-| Tarjeta | Integrante | Rama | Carpeta de Postman |
-|---|---|---|---|
-| A · Reseñas | Valeria Guaiguacundo | `taller/a-valeria` | Taller · A · Valeria Guaiguacundo |
-| B · Categorías y búsqueda | Samuel Dávalos | `taller/b-samuel` | Taller · B · Samuel Dávalos |
-| C · Historial de estados | Brithany López | `taller/c-brithany` | Taller · C · Brithany López |
-| D · Mi cuenta e indicadores (integrador) | Daniel Palacios | `taller/d-daniel` | Taller · D · Daniel Palacios |
+| Tarjeta | Funcionalidad | Persona asignada |
+|---|---|---|
+| A | Reseñas | Valeria Guaiguacundo |
+| B | Categorías y búsqueda | Samuel Dávalos |
+| C | Historial de estados | Brithany López |
+| D | Mi cuenta e indicadores | Daniel Palacios |
 
 ### Taller · Tarjeta A · Reseñas · Valeria Guaiguacundo
 
