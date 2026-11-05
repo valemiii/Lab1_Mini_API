@@ -81,9 +81,11 @@ evidencias/        resultados Newman local y Render, capturas
 
 ### Ejecución local
 
+`.env.example` conserva los marcadores indicados por el docente (`300x`, `x` y `?h`). Al copiarlo como `.env`, reemplázalos con los valores de tu entorno local; no subas `.env` a GitHub.
+
 ```bash
 npm ci
-cp .env.example .env            # DATABASE_URL y JWT_SECRET
+cp .env.example .env            # reemplaza los marcadores por tus valores locales
 npx prisma migrate deploy       # o: npx prisma migrate dev
 npx prisma generate
 npm run db:seed                 # admin@apdaf.com / Admin123*
