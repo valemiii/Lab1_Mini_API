@@ -140,6 +140,9 @@ Esta sección describe las cuatro tarjetas integradas y la distribución del equ
 
 **Modelo:** `Review` (1:N con `User` y con `Product`), `rating` `@db.SmallInt`, `comment` `@db.VarChar(300)`, `@@unique([userId, productId])` para que un usuario reseñe un producto una sola vez (el `P2002` se traduce a 409). `onDelete: Cascade` en ambos lados porque una reseña no tiene sentido sin su autor ni sin el producto. El promedio se calcula con `aggregate({ _avg: { rating } })` y la lista, el conteo y el promedio se leen en un `$transaction` de lecturas.
 **Código:** `src/routes/review.routes.js` · `src/controllers/review.controller.js` · `src/services/review.service.js`.
+**Rama:** `taller/a-valeria`. La colección independiente de la tarjeta está en `postman/tarjeta-a/Tarjeta_A_Valeria.postman_collection.json`.
+
+La Tarjeta A fue subida inicialmente por Samuel y Daniel. Esta versión la vuelvo a subir desde mi cuenta, con correcciones.
 
 ### Taller · Tarjeta B · Categorías y búsqueda · Samuel Dávalos
 

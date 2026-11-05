@@ -1,7 +1,39 @@
-const service = require('../services/review.service');
+const reviewService = require('../services/review.service');
 const HttpError = require('../utils/httpError');
-const id = (v) => { const n = Number(v); if (!Number.isInteger(n) || n < 1) throw new HttpError(400, 'El id debe ser numérico'); return n; };
-const create = async (req,res,next) => { try { res.status(201).json(await service.create(req.user.id, id(req.params.id), req.body)); } catch(e){next(e);} };
-const list = async (req,res,next) => { try { res.json(await service.list(id(req.params.id), req.query.page, req.query.limit)); } catch(e){next(e);} };
-const remove = async (req,res,next) => { try { await service.remove(req.user.id, req.user.role, id(req.params.id)); res.status(204).send(); } catch(e){next(e);} };
+
+const parseId = (value) => {
+  const id = Number(value);
+  if (!Number.isSafeInteger(id) || id < 1) {
+    throw new HttpError(400, 'El id debe ser un entero positivo');
+  }
+  return id;
+};
+
+const create = async (req, res, next) => {
+  try {
+    const review = await reviewService.createReview(req.user.id, parseId(req.params.id), req.body);
+    res.status(201).json(review);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const list = async (req, res, next) => {
+  try {
+    const reviews = await reviewService.listProductReviews(parseId(req.params.id), req.query);
+    res.status(200).json(reviews);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const remove = async (req, res, next) => {
+  try {
+    await reviewService.deleteReview(req.user.id, req.user.role, parseId(req.params.id));
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = { create, list, remove };
