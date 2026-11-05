@@ -136,7 +136,6 @@ Esta sección describe las cuatro tarjetas integradas y la distribución del equ
 |---|---|---|---|---|
 | POST | /api/products/:id/reviews | Autenticado | `{ rating: 1-5, comment? (≤300) }` | 201 reseña con autor · 400 rating fuera de 1–5 o comment > 300 · 401 sin token · 404 producto · 409 ya reseñó |
 | GET | /api/products/:id/reviews | Público | — (query: `page`, `limit`) | 200 `{ productId, average, total, page, limit, pages, data }` · 404 producto |
-| PATCH | /api/reviews/:id | Autor o ADMIN | `{ rating?, comment? }` | 200 reseña actualizada · 400 datos inválidos · 401 · 403 no es el autor · 404 |
 | DELETE | /api/reviews/:id | Autor o ADMIN | — | 204 · 401 · 403 no es el autor · 404 |
 
 **Modelo:** `Review` (1:N con `User` y con `Product`), `rating` `@db.SmallInt`, `comment` `@db.VarChar(300)`, `@@unique([userId, productId])` para que un usuario reseñe un producto una sola vez (el `P2002` se traduce a 409). `onDelete: Cascade` en ambos lados porque una reseña no tiene sentido sin su autor ni sin el producto. El promedio se calcula con `aggregate({ _avg: { rating } })` y la lista, el conteo y el promedio se leen en un `$transaction` de lecturas.
