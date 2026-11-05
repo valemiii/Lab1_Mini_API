@@ -27,20 +27,6 @@ const list = async (req, res, next) => {
   }
 };
 
-const update = async (req, res, next) => {
-  try {
-    const review = await reviewService.updateReview(
-      req.user.id,
-      req.user.role,
-      parseId(req.params.id),
-      req.body
-    );
-    res.status(200).json(review);
-  } catch (error) {
-    next(error);
-  }
-};
-
 const remove = async (req, res, next) => {
   try {
     await reviewService.deleteReview(req.user.id, req.user.role, parseId(req.params.id));
@@ -50,4 +36,4 @@ const remove = async (req, res, next) => {
   }
 };
 
-module.exports = { create, list, update, remove };
+module.exports = { create, list, remove };

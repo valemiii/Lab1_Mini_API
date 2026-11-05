@@ -3,23 +3,21 @@ const HttpError = require('../utils/httpError');
 
 const reviewAuthor = { select: { id: true, name: true } };
 
-const parseReview = (input, partial = false) => {
+const parseReview = (input) => {
   if (!input || typeof input !== 'object' || Array.isArray(input)) {
     throw new HttpError(400, 'El cuerpo debe ser un objeto JSON');
   }
 
   const keys = Object.keys(input);
-  if (keys.some((key) => !['rating', 'comment'].includes(key)) || (partial && keys.length === 0)) {
+  if (keys.some((key) => !['rating', 'comment'].includes(key))) {
     throw new HttpError(400, 'Incluye rating o comment válidos');
   }
 
   const result = {};
-  if (!partial || Object.hasOwn(input, 'rating')) {
-    if (!Number.isInteger(input.rating) || input.rating < 1 || input.rating > 5) {
-      throw new HttpError(400, 'rating debe ser un entero entre 1 y 5');
-    }
-    result.rating = input.rating;
+  if (!Number.isInteger(input.rating) || input.rating < 1 || input.rating > 5) {
+    throw new HttpError(400, 'rating debe ser un entero entre 1 y 5');
   }
+  result.rating = input.rating;
 
   if (Object.hasOwn(input, 'comment')) {
     if (input.comment !== null && (typeof input.comment !== 'string' || input.comment.length > 300)) {
@@ -56,7 +54,7 @@ const requireReview = async (reviewId) => {
 
 const authorizeOwnerOrAdmin = (review, userId, role) => {
   if (role !== 'ADMIN' && review.userId !== userId) {
-    throw new HttpError(403, 'Solo el autor o ADMIN puede modificar esta reseña');
+    throw new HttpError(403, 'Solo el autor o ADMIN puede eliminar esta reseña');
   }
 };
 
@@ -106,22 +104,10 @@ const listProductReviews = async (productId, query) => {
   };
 };
 
-const updateReview = async (userId, role, reviewId, input) => {
-  const data = parseReview(input, true);
-  const review = await requireReview(reviewId);
-  authorizeOwnerOrAdmin(review, userId, role);
-
-  return prisma.review.update({
-    where: { id: reviewId },
-    data,
-    include: { user: reviewAuthor },
-  });
-};
-
 const deleteReview = async (userId, role, reviewId) => {
   const review = await requireReview(reviewId);
   authorizeOwnerOrAdmin(review, userId, role);
   await prisma.review.delete({ where: { id: reviewId } });
 };
 
-module.exports = { createReview, listProductReviews, updateReview, deleteReview };
+module.exports = { createReview, listProductReviews, deleteReview };

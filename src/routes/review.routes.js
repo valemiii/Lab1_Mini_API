@@ -6,7 +6,6 @@ const router = Router();
 
 router.post('/products/:id/reviews', authenticateToken, reviewController.create);
 router.get('/products/:id/reviews', reviewController.list);
-router.patch('/reviews/:id', authenticateToken, reviewController.update);
 router.delete('/reviews/:id', authenticateToken, reviewController.remove);
 
 module.exports = router;
