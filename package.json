@@ -1,17 +1,26 @@
 {
-  "name": "lab1-mini-api-mvc",
-  "version": "1.0.0",
-  "description": "Laboratorio 1 · Desarrollo Web Avanzado · Mini-API MVC con CRUD para el emprendimiento del grupo",
+  "name": "apdaf-lab3-api",
+  "version": "3.0.0",
+  "description": "Laboratorio 3: relaciones, autenticación JWT, transacciones y consultas avanzadas",
   "main": "src/server.js",
   "scripts": {
     "dev": "node --watch src/server.js",
-    "start": "node src/server.js"
+    "start": "prisma migrate deploy && node prisma/seed.js --if-empty && node src/server.js",
+    "test:smoke": "node scripts/smoke-test.js",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:seed": "node prisma/seed.js"
   },
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
+    "@prisma/client": "^6.16.2",
+    "bcryptjs": "^2.4.3",
     "dotenv": "^16.4.5",
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "prisma": "^6.16.2"
   }
 }

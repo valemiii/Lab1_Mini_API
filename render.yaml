@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: apdaf-lab3-api
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npx prisma generate && npx prisma migrate resolve --rolled-back 20261028000000_init; npx prisma migrate deploy
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: apdaf-lab3-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 4h
+      - key: NODE_ENV
+        value: production
+databases:
+  - name: apdaf-lab3-db
+    plan: basic-256mb

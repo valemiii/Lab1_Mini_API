@@ -1,0 +1,92 @@
+(node:37696) [DEP0176] DeprecationWarning: fs.F_OK is deprecated, use fs.constants.F_OK instead
+(Use `node --trace-deprecation ...` to show where the warning was created)
+newman
+
+G1_Lab2 · Prisma y transacciones
+
+→ 1. Listar productos
+  GET http://localhost:3000/api/products [200 OK, 931B, 44ms]
+  √  HTTP 200
+  √  Devuelve un arreglo
+  √  Hay productos de seed
+
+→ 2. Crear producto
+  POST http://localhost:3000/api/products [201 Created, 442B, 7ms]
+  √  HTTP 201
+  √  SKU generado
+
+→ 3. Consultar producto de seed (ID dinámico)
+  GET http://localhost:3000/api/products/4 [200 OK, 467B, 5ms]
+  √  HTTP 200
+
+→ 4. Actualizar producto
+  PUT http://localhost:3000/api/products/14 [200 OK, 435B, 9ms]
+  √  HTTP 200
+  √  Precio actualizado
+
+→ 5. Crear lote válido (COMMIT)
+  POST http://localhost:3000/api/products/lote [201 Created, 607B, 8ms]
+  √  HTTP 201
+  √  Crea los dos
+
+→ 6. Lote inválido (ROLLBACK)
+  POST http://localhost:3000/api/products/lote [400 Bad Request, 302B, 8ms]
+  √  HTTP 400
+
+→ 7. Verificar rollback por validación
+  GET http://localhost:3000/api/products [200 OK, 1.5kB, 4ms]
+  √  HTTP 200
+  √  No quedó guardado ningún producto del lote revertido
+
+→ 8. SKU duplicado (409 y ROLLBACK)
+  POST http://localhost:3000/api/products/lote [409 Conflict, 295B, 8ms]
+  √  HTTP 409
+
+→ 9. Verificar rollback por duplicado
+  GET http://localhost:3000/api/products [200 OK, 1.5kB, 6ms]
+  √  HTTP 200
+  √  No quedó guardado ningún producto del lote revertido
+
+→ 10. Body no es arreglo (400)
+  POST http://localhost:3000/api/products/lote [400 Bad Request, 283B, 2ms]
+  √  HTTP 400
+
+→ 11. Producto inexistente (404)
+  GET http://localhost:3000/api/products/999999 [404 Not Found, 276B, 5ms]
+  √  HTTP 404
+
+→ 12. Eliminar producto de prueba
+  DELETE http://localhost:3000/api/products/14 [204 No Content, 134B, 6ms]
+  √  HTTP 204
+
+→ 13. Ruta inexistente (404)
+  GET http://localhost:3000/api/no-existe [404 Not Found, 292B, 1ms]
+  √  HTTP 404
+
+→ 14. Eliminar primer producto del lote confirmado
+  DELETE http://localhost:3000/api/products/15 [204 No Content, 134B, 5ms]
+  √  HTTP 204
+
+→ 15. Eliminar segundo producto del lote confirmado
+  DELETE http://localhost:3000/api/products/16 [204 No Content, 134B, 6ms]
+  √  HTTP 204
+
+┌─────────────────────────┬─────────────────┬─────────────────┐
+│                         │        executed │          failed │
+├─────────────────────────┼─────────────────┼─────────────────┤
+│              iterations │               1 │               0 │
+├─────────────────────────┼─────────────────┼─────────────────┤
+│                requests │              15 │               0 │
+├─────────────────────────┼─────────────────┼─────────────────┤
+│            test-scripts │              15 │               0 │
+├─────────────────────────┼─────────────────┼─────────────────┤
+│      prerequest-scripts │               0 │               0 │
+├─────────────────────────┼─────────────────┼─────────────────┤
+│              assertions │              22 │               0 │
+├─────────────────────────┴─────────────────┴─────────────────┤
+│ total run duration: 1362ms                                  │
+├─────────────────────────────────────────────────────────────┤
+│ total data received: 4.44kB (approx)                        │
+├─────────────────────────────────────────────────────────────┤
+│ average response time: 8ms [min: 1ms, max: 44ms, s.d.: 9ms] │
+└─────────────────────────────────────────────────────────────┘

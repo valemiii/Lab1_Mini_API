@@ -1,4 +1,4 @@
-# Propuesta del emprendimiento · Grupo GXX
+# Propuesta del emprendimiento · Grupo G1
 
 > Actividad 1 de la sesión 1. Propuesta basada en el catálogo público de [APDAF SPORT](https://apdafsport.com/), consultado el 18 de octubre de 2026. Los precios del catálogo pueden cambiar.
 
@@ -9,7 +9,7 @@
 | Usuarios (quién lo usa) | Madres, padres y representantes que compran uniformes; estudiantes que consultan prendas y tallas; personal de APDAF SPORT que administra el catálogo y atiende pedidos. |
 | 3 funciones principales | 1. Consultar uniformes y accesorios organizados por institución y categoría. <br> 2. Revisar productos y precios del catálogo, y seleccionar prendas para un pedido. <br> 3. Solicitar asesoría personalizada sobre productos y tallas por WhatsApp. |
 
-**WhatsApp:** la página indica que el canal está en configuración y no muestra un número público. Número de contacto: **pendiente de confirmar con APDAF SPORT**; no se inventa uno.
+**WhatsApp:** canal de atención del emprendimiento: **+593 99 717 4850**.
 
 ## Mapa frontend–backend
 
