@@ -1,13 +1,16 @@
 require("dotenv").config();
 const app = require("./app");
 const prisma = require("./db/prisma");
+const { connectMongo, disconnectMongo } = require("./db/mongo");
 const PORT = process.env.PORT || 3000;
 const start = async () => {
   try {
     if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) throw new Error("JWT_SECRET es obligatorio y debe tener al menos 32 caracteres");
+    await connectMongo();
     await prisma.$connect();
+    console.log("Conexión a PostgreSQL establecida (Prisma).");
     const server = app.listen(PORT, () => console.log(`Servidor ejecutándose en puerto ${PORT}`));
-    const shutdown = async () => { server.close(); await prisma.$disconnect(); process.exit(0); };
+    const shutdown = async () => { server.close(); await Promise.all([prisma.$disconnect(), disconnectMongo()]); process.exit(0); };
     process.on("SIGTERM", shutdown);
     process.on("SIGINT", shutdown);
   } catch (error) {
