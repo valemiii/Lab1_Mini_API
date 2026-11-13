@@ -81,16 +81,17 @@ evidencias/        resultados Newman local y Render, capturas
 
 ### Ejecución local
 
-`.env.example` conserva los marcadores indicados por el docente (`300x`, `x` y `?h`). Al copiarlo como `.env`, reemplázalos con los valores de tu entorno local; no subas `.env` a GitHub.
+Se requiere Node.js 20.19 o posterior. Para la configuración de Supabase, MongoDB, Compass y el relevo de U2, consulta [`docs/u2/preparacion-entorno.md`](docs/u2/preparacion-entorno.md). Configura `.env` con tus valores locales; no subas ese archivo a GitHub.
 
-```bash
+```powershell
 npm ci
-cp .env.example .env            # reemplaza los marcadores por tus valores locales
-npx prisma migrate deploy       # o: npx prisma migrate dev
-npx prisma generate
-npm run db:seed                 # admin@apdaf.com / Admin123*
+Copy-Item .env.example .env     # completa Supabase, JWT y MongoDB
+npm run db:generate
+docker compose up -d mongodb
 npm run dev                     # http://localhost:3000
 ```
+
+`npm start` aplica migraciones y ejecuta el seed; revisa sus efectos en la base antes de usarlo con datos compartidos.
 
 ### Despliegue (Render)
 
