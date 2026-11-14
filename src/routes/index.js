@@ -6,6 +6,7 @@ const adminRoutes = require("./admin.routes");
 const reviewRoutes = require("./review.routes");
 const categoryRoutes = require("./category.routes");
 const meRoutes = require("./me.routes");
+const resenasRoutes = require("./resenas");
 
 // Archivo principal de rutas: cada recurso se monta en su propio prefijo
 const router = Router();
@@ -17,5 +18,6 @@ router.use("/admin", adminRoutes);
 router.use(reviewRoutes);
 router.use("/categories", categoryRoutes);
 router.use("/me", meRoutes);
+router.use(resenasRoutes);
 
 module.exports = router;
