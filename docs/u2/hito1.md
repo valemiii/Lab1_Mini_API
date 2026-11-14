@@ -1,97 +1,70 @@
 # Hito 1 — Selección de datos NoSQL y modelo documental
 
-## Objetivo
+**Proyecto:** APDAF SPORT · Grupo G1  
+**Base NoSQL propuesta:** MongoDB, base `apdaf_sport`  
+**Colección principal:** `resenas`  
+**Recurso API previsto:** `/api/resenas`  
+**Alcance de esta parte:** documentar el modelo y preparar `POST /api/resenas`.
 
-Documentar la selección de los datos NoSQL y el modelo documental de APDAF SPORT. En
-esta primera parte se define la colección principal `resenas`, la colección
-complementaria `reportes_resenas` y el recurso API `POST /api/resenas`.
+> **Estado del hito:** documentación completada. El POST y la conexión MongoDB son una actividad de implementación posterior; no son necesarios para documentar esta Parte 1.
 
-## Contexto de persistencia
+## 1. Selección de datos y tipo NoSQL
 
-- **PostgreSQL en Supabase:** conserva los datos transaccionales y relacionales:
-  usuarios, productos, categorías, inventario, ventas, detalle de ventas y
-  proveedores.
-- **MongoDB:** utiliza la base de datos `apdaf_sport`.
-- **Colección principal de esta parte:** `resenas`.
-- **Segunda colección prevista:** `reportes_resenas`.
-- **Recurso API:** `/api/resenas`.
-
-## Selección de datos NoSQL
-
-| Dato | Tipo NoSQL elegido | Justificación para APDAF SPORT |
+| Dato de APDAF SPORT | Tipo NoSQL elegido | Justificación según estructura y uso |
 |---|---|---|
-| Reseñas y valoraciones de productos | Base documental | Cada reseña reúne en un mismo documento la referencia al producto, el cliente, la calificación, el comentario, la fecha y su estado. Estos campos pueden evolucionar —por ejemplo, agregando respuesta del negocio, fotos o moderación— sin modificar un esquema rígido. Se consulta por producto y se publica como una unidad en `resenas`. |
-| Personalización de uniformes | Base documental | Las opciones de personalización pueden variar por producto o institución: talla, nombre, número, colores, bordado y observaciones. Un documento permite guardar únicamente las opciones elegidas y añadir nuevas alternativas sin llenar columnas que no aplican a todos los pedidos. |
-| Historial de actividad de clientes | Almacén clave-valor | La actividad se identifica naturalmente por una clave como `clienteId` y contiene eventos o marcas de tiempo asociados. Este modelo favorece registrar y recuperar rápidamente la actividad reciente de un cliente, sin duplicar la información maestra que ya pertenece a PostgreSQL. |
+| Reseñas y valoraciones de productos | Documental | Una reseña reúne en un mismo documento la valoración, el comentario, imágenes y una eventual respuesta de la empresa. Estos campos se consultan juntos desde `/api/resenas` y pueden evolucionar sin alterar un esquema relacional rígido. |
+| Personalización de uniformes | Documental | Una solicitud puede contener opciones variables por prenda (talla, medidas, bordado, colores y observaciones). Un documento permite conservar esas opciones anidadas y agregar nuevas personalizaciones sin crear una tabla por cada variante. |
+| Historial de actividad de clientes | Orientado a eventos/documental | La actividad se registra como eventos con fecha, tipo y metadatos variables. El formato documental admite distintos tipos de evento y facilita consultas por cliente y período; su retención y particionado se definirían si el volumen crece. |
 
-La elección es por tipo de estructura y patrón de uso, no por reemplazar el modelo
-relacional. MongoDB se aplicará inicialmente a las reseñas; los otros dos datos
-quedan como alternativas NoSQL documentadas para futuras partes del proyecto.
+## 2. ¿Por qué `resenas` es la colección documental?
 
-## ¿Por qué `resenas` es la colección documental?
+`resenas` es el primer caso de uso de esta parte porque una reseña es una unidad natural de lectura y escritura: se crea con una valoración y comentario, se consulta junto con sus imágenes y puede incorporar una respuesta de APDAF SPORT. El documento evita joins para esos datos dependientes y conserva la flexibilidad necesaria para moderación y contenido multimedia. La colección `reportes_resenas` se mantiene separada porque los reportes tienen otro ciclo de vida, permisos y frecuencia de revisión.
 
-`resenas` es la colección principal porque las reseñas son contenido generado por
-clientes que se consulta junto con su valoración. La unidad de lectura es una
-reseña completa, por lo que resulta conveniente mantener en un documento sus
-atributos relacionados: producto, cliente, calificación, comentario, fecha y
-estado de publicación.
+## 3. Documento de ejemplo
 
-Además, el contenido puede crecer de forma controlada. Una reseña podría incorporar
-una respuesta de APDAF SPORT, fotografías, etiquetas de moderación o una
-actualización de estado sin alterar las tablas transaccionales de PostgreSQL.
-`reportes_resenas` se reserva para agregaciones o resultados de análisis sobre las
-reseñas, evitando mezclar datos derivados con el documento original.
-
-## Documento de ejemplo
-
-El siguiente documento representa el cuerpo conceptual de un `POST /api/resenas`.
-`productoId` y `clienteId` son referencias a registros que permanecen en
-PostgreSQL; MongoDB conserva el contenido flexible de la reseña.
+El siguiente documento es coherente con la propuesta y usa referencias lógicas a PostgreSQL:
 
 ```json
 {
-  "_id": {
-    "$oid": "672f1a2b3c4d5e6f7890abcd"
+  "_id": "665f1a2b9c7d4e0012345678",
+  "productoId": 42,
+  "usuarioId": 17,
+  "puntuacion": 5,
+  "comentario": "La tela es cómoda y la talla coincide con la guía.",
+  "imagenes": [
+    {
+      "url": "https://cdn.example.com/resenas/665f1a2b-1.jpg",
+      "descripcion": "Uniforme deportivo recibido"
+    }
+  ],
+  "respuestaEmpresa": {
+    "texto": "¡Gracias por compartir tu experiencia!",
+    "respondidoPor": 3,
+    "respondidoEn": "2026-11-14T18:30:00.000Z"
   },
-  "productoId": 18,
-  "clienteId": 42,
-  "calificacion": 5,
-  "comentario": "La tela del uniforme deportivo es cómoda y la talla coincide con la guía.",
-  "fecha": "2026-11-12T12:30:00.000Z",
   "estado": "pendiente",
-  "respuestaNegocio": null
+  "createdAt": "2026-11-14T17:45:00.000Z",
+  "updatedAt": "2026-11-14T18:30:00.000Z"
 }
 ```
 
-La calificación se expresa en una escala de 1 a 5 y `estado` permite controlar
-la moderación antes de publicar la reseña. En el `POST`, `_id` y `fecha` pueden
-ser generados por el servicio; se muestran aquí para documentar la forma final
-del documento.
+Para mantener reglas simples y consistentes, `estado` usa estos valores:
 
-## Datos que permanecen en PostgreSQL
+- `pendiente`: reseña creada y todavía no moderada.
+- `publicada`: reseña visible para los usuarios.
+- `rechazada`: reseña no publicada por moderación.
 
-PostgreSQL en Supabase mantiene:
+Estos valores forman parte del contrato documental de esta propuesta y deben mantenerse iguales en el POST y en las validaciones del servicio.
 
-- **Usuarios**, porque son datos maestros con identidad, autenticación y
-  relaciones con otras operaciones.
-- **Productos y categorías**, porque forman el catálogo estructurado y las
-  relaciones de clasificación.
-- **Inventario**, porque requiere consistencia para existencias y disponibilidad.
-- **Ventas y detalle de ventas**, porque son operaciones transaccionales que
-  necesitan relaciones, integridad referencial y consultas consistentes.
-- **Proveedores**, porque son entidades maestras relacionadas con el abastecimiento.
+## 4. Datos que permanecen en PostgreSQL
 
-Esta separación evita duplicar información sensible o transaccional en MongoDB.
-La reseña solo guarda las referencias `productoId` y `clienteId`; cuando se
-requieren datos completos del producto o del usuario, el servicio puede
-consultarlos en PostgreSQL. MongoDB se concentra en el contenido flexible y
-documental de `resenas`.
+PostgreSQL en Supabase conserva `usuarios`, `productos`, `categorias`, `inventario`, `ventas`, `detalle_ventas` y `proveedores`. Son datos transaccionales y relacionales: requieren integridad referencial, claves únicas, stock y operaciones de venta consistentes. En MongoDB, `productoId` y `usuarioId` son referencias lógicas a esos registros; no reemplazan las claves foráneas ni duplican sus datos.
 
-## Alcance del Hito 1
+## 5. Revisión y pendientes
 
-En esta parte se entrega la documentación de la selección NoSQL y el modelo
-documental. La implementación funcional prevista para la siguiente actividad es
-el endpoint `POST /api/resenas`, con persistencia en la colección `resenas`.
-
-**Revisión solicitada:** avisar a Valeria para que revise este documento y
-etiquete el Hito 1 cuando confirme su contenido.
+- [x] Se documentó la tabla de tres datos NoSQL y su justificación.
+- [x] Se justificó `resenas` como colección documental.
+- [x] Se incluyó un JSON de ejemplo.
+- [x] Se documentaron los datos que permanecen en PostgreSQL.
+- [ ] Valeria revisa y etiqueta/cierra el Hito 1.
+- [ ] Implementar y probar `POST /api/resenas` como actividad posterior.
