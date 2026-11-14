@@ -2,15 +2,6 @@
 const errorHandler = (err, req, res, next) => {
   if (res.headersSent) return next(err);
 
-  if (err.name === "ValidationError" && err.errors) {
-    return res.status(400).json({
-      error: "Error de validación",
-      detalles: Object.values(err.errors).map((fieldError) => ({
-        campo: fieldError.path,
-        mensaje: fieldError.message,
-      })),
-    });
-  }
   const isMalformedJson = err.type === "entity.parse.failed";
   const prismaCode = err.code;
   const requestedStatus = Number(err.status || err.statusCode);
