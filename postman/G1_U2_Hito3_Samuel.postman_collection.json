@@ -1,0 +1,106 @@
+{
+  "info": {
+    "_postman_id": "8c1580e0-80e8-4f7f-b670-009d0b5f0003",
+    "name": "G1 · U2 Hito 3 · Samuel · POST reseñas",
+    "description": "Prueba POST /api/resenas. Requiere migración Prisma aplicada, MongoDB levantado y las variables productoId/usuarioId con UUID reales de products.uuid y users.uuid.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01 · Crear reseña válida (201)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"productoId\": \"{{productoId}}\",\n  \"usuarioId\": \"{{usuarioId}}\",\n  \"calificacion\": 5,\n  \"comentario\": \"  La tela es cómoda y la talla coincide con la guía.  \",\n  \"imagenes\": [\"https://apdafsport.com/img/camisa-1.jpg\"]\n}"
+        },
+        "url": "{{baseUrl}}/api/resenas"
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test(\"201 Created\", () => pm.response.to.have.status(201));",
+            "const resena = pm.response.json();",
+            "pm.test(\"Incluye el virtual estrellas\", () => pm.expect(resena.estrellas).to.eql(\"★★★★★\"));",
+            "pm.test(\"Normaliza comentario y asigna fecha\", () => { pm.expect(resena.comentario).to.eql(\"La tela es cómoda y la talla coincide con la guía.\"); pm.expect(Number.isNaN(Date.parse(resena.fechaCreacion))).to.eql(false); });",
+            "pm.test(\"Colección y estado predeterminado\", () => pm.expect(resena.estado).to.eql(\"pendiente\"));"
+          ]
+        }
+      }]
+    },
+    {
+      "name": "02 · Calificación fuera de rango (400 por campo)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"productoId\": \"{{productoId}}\",\n  \"usuarioId\": \"{{usuarioId}}\",\n  \"calificacion\": 6,\n  \"comentario\": \"Comentario suficientemente largo para validar.\"\n}"
+        },
+        "url": "{{baseUrl}}/api/resenas"
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test(\"400 Bad Request\", () => pm.response.to.have.status(400));",
+            "pm.test(\"Indica el campo calificacion\", () => pm.expect(pm.response.json().detalles.map((detalle) => detalle.campo)).to.include(\"calificacion\"));"
+          ]
+        }
+      }]
+    },
+    {
+      "name": "03 · Comentario inválido después de trim (400 por campo)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"productoId\": \"{{productoId}}\",\n  \"usuarioId\": \"{{usuarioId}}\",\n  \"calificacion\": 4,\n  \"comentario\": \"      corto      \"\n}"
+        },
+        "url": "{{baseUrl}}/api/resenas"
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test(\"400 Bad Request\", () => pm.response.to.have.status(400));",
+            "pm.test(\"Valida comentario normalizado\", () => pm.expect(pm.response.json().detalles.map((detalle) => detalle.campo)).to.include(\"comentario\"));"
+          ]
+        }
+      }]
+    },
+    {
+      "name": "04 · Producto inexistente en PostgreSQL (404, no inserta)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"productoId\": \"99999999-9999-4999-8999-999999999999\",\n  \"usuarioId\": \"{{usuarioId}}\",\n  \"calificacion\": 4,\n  \"comentario\": \"Comentario válido para una reseña.\"\n}"
+        },
+        "url": "{{baseUrl}}/api/resenas"
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test(\"404 Not Found\", () => pm.response.to.have.status(404));",
+            "pm.test(\"Explica la referencia de producto\", () => pm.expect(pm.response.json().error).to.include(\"productoId\"));"
+          ]
+        }
+      }]
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "productoId", "value": "" },
+    { "key": "usuarioId", "value": "" }
+  ]
+}
