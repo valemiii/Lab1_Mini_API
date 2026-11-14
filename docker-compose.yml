@@ -1,5 +1,5 @@
-# PostgreSQL 17 para el laboratorio (opcional si ya lo instalaste en tu computadora)
-# Levantar: docker compose up -d   ·   Detener: docker compose down
+# PostgreSQL 17 local existente (opcional; el proyecto usa PostgreSQL en Supabase).
+# Para este laboratorio, levanta solo MongoDB: docker compose up -d mongodb
 services:
   postgres:
     image: postgres:17-alpine
@@ -14,5 +14,17 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  mongodb:
+    image: mongo:8
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:-apdaf_admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:-apdaf_local_password}
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongodb_data:/data/db
+
 volumes:
   postgres_data:
+  mongodb_data:

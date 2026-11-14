@@ -1,0 +1,122 @@
+{
+  "info": {
+    "name": "G1 ? U2 Hito 3 ? Valeria ? Validaciones y evidencias",
+    "description": "Colecci?n equivalente preparada a partir de la colecci?n existente de Samuel; kit no disponible en el repositorio. Configurar baseUrl, productoId y usuarioId con UUID existentes de PostgreSQL. No incluye credenciales. Ejecuci?n real pendiente; ver docs/u2/valeria-pruebas-evidencias.md.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01 · Crear reseña válida (201)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"productoId\": \"{{productoId}}\",\n  \"usuarioId\": \"{{usuarioId}}\",\n  \"calificacion\": 5,\n  \"comentario\": \"  La tela es cómoda y la talla coincide con la guía.  \",\n  \"imagenes\": [\"https://apdafsport.com/img/camisa-1.jpg\"]\n}"
+        },
+        "url": "{{baseUrl}}/api/resenas"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"201 Created\", () => pm.response.to.have.status(201));",
+              "const resena = pm.response.json();",
+              "pm.test(\"Incluye el virtual estrellas\", () => pm.expect(resena.estrellas).to.eql(\"★★★★★\"));",
+              "pm.test(\"Normaliza comentario y asigna fecha\", () => { pm.expect(resena.comentario).to.eql(\"La tela es cómoda y la talla coincide con la guía.\"); pm.expect(Number.isNaN(Date.parse(resena.fechaCreacion))).to.eql(false); });",
+              "pm.test(\"Colección y estado predeterminado\", () => pm.expect(resena.estado).to.eql(\"pendiente\"));",
+              "pm.test(\"Identificador MongoDB v?lido\", () => pm.expect(resena._id).to.match(/^[a-f0-9]{24}$/i));",
+              "pm.test(\"Documento conserva referencias, calificaci?n e im?genes\", () => { const entrada = JSON.parse(pm.variables.replaceIn(pm.request.body.raw)); pm.expect(resena.productoId).to.eql(entrada.productoId); pm.expect(resena.usuarioId).to.eql(entrada.usuarioId); pm.expect(resena.calificacion).to.eql(entrada.calificacion); pm.expect(resena.imagenes).to.eql(entrada.imagenes); });",
+              "if (pm.response.code === 201) pm.collectionVariables.set(\"resenaCreadaId\", resena._id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 · Calificación fuera de rango (400 por campo)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"productoId\": \"{{productoId}}\",\n  \"usuarioId\": \"{{usuarioId}}\",\n  \"calificacion\": 6,\n  \"comentario\": \"Comentario suficientemente largo para validar.\"\n}"
+        },
+        "url": "{{baseUrl}}/api/resenas"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"400 Bad Request\", () => pm.response.to.have.status(400));",
+              "pm.test(\"Indica el campo calificacion\", () => pm.expect(pm.response.json().detalles.map((detalle) => detalle.campo)).to.include(\"calificacion\"));",
+              "pm.test(\"Mensaje espec?fico de calificacion\", () => { const detalle = pm.response.json().detalles.find(d => d.campo === \"calificacion\"); pm.expect(detalle).to.be.an(\"object\"); pm.expect(detalle.mensaje).to.include(\"calificacion\"); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 · Comentario inválido después de trim (400 por campo)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"productoId\": \"{{productoId}}\",\n  \"usuarioId\": \"{{usuarioId}}\",\n  \"calificacion\": 4,\n  \"comentario\": \"      corto      \"\n}"
+        },
+        "url": "{{baseUrl}}/api/resenas"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"400 Bad Request\", () => pm.response.to.have.status(400));",
+              "pm.test(\"Valida comentario normalizado\", () => pm.expect(pm.response.json().detalles.map((detalle) => detalle.campo)).to.include(\"comentario\"));",
+              "pm.test(\"Mensaje espec?fico de comentario\", () => { const detalle = pm.response.json().detalles.find(d => d.campo === \"comentario\"); pm.expect(detalle).to.be.an(\"object\"); pm.expect(detalle.mensaje).to.include(\"comentario\"); });"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "productoId",
+      "value": ""
+    },
+    {
+      "key": "usuarioId",
+      "value": ""
+    },
+    {
+      "key": "resenaCreadaId",
+      "value": ""
+    }
+  ]
+}

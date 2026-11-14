@@ -15,7 +15,7 @@ const updateOrderStatus = async (req, res, next) => {
   try {
     const id = Number.parseInt(req.params.id, 10);
     if (Number.isNaN(id)) throw new HttpError(400, "El id debe ser numérico");
-    res.json(await adminService.updateOrderStatus(id, req.body?.status));
+    res.json(await adminService.updateOrderStatus(id, req.body?.status, req.body?.note, req.user.id));
   } catch (err) {
     next(err);
   }
@@ -29,5 +29,6 @@ const topProducts = async (req, res, next) => {
     next(err);
   }
 };
+const stats = async (req,res,next)=>{try{res.json(await adminService.stats(req.query));}catch(err){next(err);}};
 
-module.exports = { listOrders, updateOrderStatus, topProducts };
+module.exports = { listOrders, updateOrderStatus, topProducts, stats };

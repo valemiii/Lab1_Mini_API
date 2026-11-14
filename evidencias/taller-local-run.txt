@@ -1,0 +1,308 @@
+newman
+G03_Taller · APDAF SPORT (Lab 3 + Taller)
+❏ Lab 3 · Auth
+↳ 1. Registrar usuario (201)
+  POST http://localhost:3000/api/auth/register [201 Created, 539B, 157ms]
+  ✓  201 Created
+  ✓  No devuelve la contraseña
+  ✓  Crea el perfil 1:1
+↳ 2. Registrar correo repetido (409)
+  POST http://localhost:3000/api/auth/register [409 Conflict, 288B, 107ms]
+  ✓  409 Conflict
+↳ 3. Login con clave incorrecta (401)
+  POST http://localhost:3000/api/auth/login [401 Unauthorized, 280B, 94ms]
+  ✓  401 Unauthorized
+  ✓  Mensaje genérico
+↳ 4. Login correcto (200 + token)
+  POST http://localhost:3000/api/auth/login [200 OK, 405B, 124ms]
+  ✓  200 OK
+  ✓  Entrega un JWT
+↳ 5. Perfil sin token (401)
+  GET http://localhost:3000/api/auth/me [401 Unauthorized, 288B, 4ms]
+  ✓  401 Unauthorized
+↳ 6. Perfil con token inválido (403)
+  GET http://localhost:3000/api/auth/me [403 Forbidden, 280B, 3ms]
+  ✓  403 Forbidden
+↳ 7. Perfil con token (200)
+  GET http://localhost:3000/api/auth/me [200 OK, 494B, 5ms]
+  ✓  200 OK
+  ✓  Es el usuario registrado
+↳ 8. Login admin del seed (200)
+  POST http://localhost:3000/api/auth/login [200 OK, 405B, 112ms]
+  ✓  200 OK
+❏ Lab 3 · Productos (rol ADMIN)
+↳ 9. Crear producto como USER (403)
+  POST http://localhost:3000/api/products [403 Forbidden, 289B, 4ms]
+  ✓  403 Forbidden
+↳ 10. Crear producto como ADMIN (201)
+  POST http://localhost:3000/api/products [201 Created, 478B, 7ms]
+  ✓  201 Created
+  ✓  price es Decimal (llega como texto)
+❏ Lab 3 · Pedidos (transacción)
+↳ 11. Pedido con stock suficiente (201)
+  POST http://localhost:3000/api/orders [201 Created, 467B, 11ms]
+  ✓  201 Created
+  ✓  Total = 2 × 3.75
+  ✓  Incluye ítems con producto (N:M)
+↳ 12. Pedido sin stock (409, ROLLBACK)
+  POST http://localhost:3000/api/orders [409 Conflict, 294B, 9ms]
+  ✓  409 Conflict
+↳ 13. Verificar ROLLBACK: stock = 3
+  GET http://localhost:3000/api/products/7 [200 OK, 473B, 3ms]
+  ✓  200 OK
+  ✓  El ítem 1 no se descontó
+↳ 14. Pedido de producto inexistente (404)
+  POST http://localhost:3000/api/orders [404 Not Found, 283B, 6ms]
+  ✓  404 Not Found
+↳ 15. Pedido con items inválidos (400)
+  POST http://localhost:3000/api/orders [400 Bad Request, 306B, 3ms]
+  ✓  400 Bad Request
+↳ 16. Mis pedidos (200, include)
+  GET http://localhost:3000/api/orders [200 OK, 464B, 6ms]
+  ✓  200 OK
+  ✓  Un pedido con sus ítems
+↳ 17. Cancelar pedido (200, devuelve stock)
+  PATCH http://localhost:3000/api/orders/7/cancel [200 OK, 464B, 15ms]
+  ✓  200 OK
+  ✓  Queda CANCELLED
+↳ 18. Stock restaurado = 5
+  GET http://localhost:3000/api/products/7 [200 OK, 473B, 6ms]
+  ✓  200 OK
+  ✓  stock vuelve a 5
+↳ 19. Cancelar otra vez (409)
+  PATCH http://localhost:3000/api/orders/7/cancel [409 Conflict, 295B, 7ms]
+  ✓  409 Conflict
+❏ Lab 3 · Admin y consultas avanzadas
+↳ 20. Admin: pedidos filtrados y paginados (200)
+  GET http://localhost:3000/api/admin/orders?status=CANCELLED&page=1&limit=5 [200 OK, 2.61kB, 10ms]
+  ✓  200 OK
+  ✓  Respuesta paginada
+  ✓  Solo CANCELLED
+↳ 21. Admin: status inválido (400)
+  GET http://localhost:3000/api/admin/orders?status=PERDIDO [400 Bad Request, 320B, 5ms]
+  ✓  400 Bad Request
+↳ 22. Admin con rol USER (403)
+  GET http://localhost:3000/api/admin/orders [403 Forbidden, 289B, 2ms]
+  ✓  403 Forbidden
+↳ 23. Admin: top productos con groupBy (200)
+  GET http://localhost:3000/api/admin/reports/top-products?limit=3 [200 OK, 438B, 8ms]
+  ✓  200 OK
+  ✓  Cada fila tiene name y unitsSold
+↳ 24. Borrar producto con pedidos (409, Restrict)
+  DELETE http://localhost:3000/api/products/7 [409 Conflict, 313B, 3ms]
+  ✓  409 Conflict
+❏ Taller · A · Valeria Guaiguacundo (Reseñas)
+↳ A1. Crear reseña sin token (401)
+  POST http://localhost:3000/api/products/7/reviews [401 Unauthorized, 288B, 2ms]
+  ✓  401 Unauthorized
+↳ A2. Rating fuera de 1–5 (400)
+  POST http://localhost:3000/api/products/7/reviews [400 Bad Request, 293B, 2ms]
+  ✓  400 Bad Request
+  ✓  Mensaje de rating
+↳ A3. Comment > 300 caracteres (400)
+  POST http://localhost:3000/api/products/7/reviews [400 Bad Request, 297B, 3ms]
+  ✓  400 Bad Request
+  ✓  Mensaje de comment
+↳ A4. Reseñar producto inexistente (404)
+  POST http://localhost:3000/api/products/999999/reviews [404 Not Found, 276B, 3ms]
+  ✓  404 Not Found
+↳ A5. Crear reseña (201)
+  POST http://localhost:3000/api/products/7/reviews [201 Created, 410B, 11ms]
+  ✓  201 Created
+  ✓  Guarda rating y autor
+↳ A6. Reseña duplicada (409, @@unique)
+  POST http://localhost:3000/api/products/7/reviews [409 Conflict, 289B, 6ms]
+  ✓  409 Conflict
+↳ A7. Listar reseñas con promedio (200)
+  GET http://localhost:3000/api/products/7/reviews?page=1&limit=10 [200 OK, 482B, 8ms]
+  ✓  200 OK
+  ✓  Paginación y promedio
+  ✓  average = 5 (aggregate _avg)
+  ✓  Incluye el nombre del autor
+↳ A8. Listar reseñas de producto inexistente (404)
+  GET http://localhost:3000/api/products/999999/reviews [404 Not Found, 276B, 3ms]
+  ✓  404 Not Found
+↳ A9. Borrar reseña ajena (403)
+  POST http://localhost:3000/api/auth/register [201 Created, 515B, 105ms]
+  POST http://localhost:3000/api/auth/login [200 OK, 405B, 113ms]
+  DELETE http://localhost:3000/api/reviews/7 [403 Forbidden, 292B, 4ms]
+  ✓  403 Forbidden
+  ✓  Mensaje de autor
+↳ A10. Borrar reseña como autor (204)
+  DELETE http://localhost:3000/api/reviews/7 [204 No Content, 134B, 6ms]
+  ✓  204 No Content
+  ✓  Sin cuerpo
+↳ A11. Borrar reseña inexistente (404)
+  DELETE http://localhost:3000/api/reviews/7 [404 Not Found, 275B, 4ms]
+  ✓  404 Not Found
+❏ Taller · B · Samuel Dávalos (Categorías y búsqueda)
+↳ B1. Crear categoría sin token (401)
+  POST http://localhost:3000/api/categories [401 Unauthorized, 288B, 2ms]
+  ✓  401 Unauthorized
+↳ B2. Crear categoría como USER (403)
+  POST http://localhost:3000/api/categories [403 Forbidden, 289B, 3ms]
+  ✓  403 Forbidden
+↳ B3. Categoría con name vacío (400)
+  POST http://localhost:3000/api/categories [400 Bad Request, 275B, 2ms]
+  ✓  400 Bad Request
+  ✓  Mensaje de name
+↳ B4. Crear categoría (201)
+  POST http://localhost:3000/api/categories [201 Created, 312B, 4ms]
+  ✓  201 Created
+  ✓  Devuelve id y name
+↳ B5. Categoría duplicada (409)
+  POST http://localhost:3000/api/categories [409 Conflict, 273B, 5ms]
+  ✓  409 Conflict
+↳ B6. Listar categorías con _count (200)
+  GET http://localhost:3000/api/categories [200 OK, 946B, 6ms]
+  ✓  200 OK
+  ✓  Cada categoría trae _count
+↳ B7. categoryIds no es arreglo (400)
+  PUT http://localhost:3000/api/products/7/categories [400 Bad Request, 308B, 2ms]
+  ✓  400 Bad Request
+↳ B8. Categoría inexistente (404)
+  PUT http://localhost:3000/api/products/7/categories [404 Not Found, 276B, 5ms]
+  ✓  404 Not Found
+↳ B9. Producto inexistente (404)
+  PUT http://localhost:3000/api/products/999999/categories [404 Not Found, 276B, 3ms]
+  ✓  404 Not Found
+↳ B10. Asignar categorías con set (200)
+  PUT http://localhost:3000/api/products/7/categories [200 OK, 562B, 10ms]
+  ✓  200 OK
+  ✓  Queda solo la categoría enviada
+↳ B11. Búsqueda combinada q + category + precio (200)
+  GET http://localhost:3000/api/products/search?q=corbata&category=accesorios 1793331864&min=1&max=50&sort=price_asc&page=1&limit=10 [200 OK, 613B, 7ms]
+  ✓  200 OK
+  ✓  Respuesta paginada
+  ✓  Encuentra el producto categorizado
+↳ B12. Búsqueda ordenada por precio desc (200)
+  GET http://localhost:3000/api/products/search?q=APDAF&sort=price_desc [200 OK, 2.16kB, 10ms]
+  ✓  200 OK
+  ✓  Orden descendente
+↳ B13. sort inválido (400)
+  GET http://localhost:3000/api/products/search?sort=bad [400 Bad Request, 270B, 2ms]
+  ✓  400 Bad Request
+  ✓  Mensaje de sort
+❏ Taller · C · Brithany López (Historial de estados)
+↳ C1. Preparar pedido PENDING (201)
+  POST http://localhost:3000/api/orders [201 Created, 468B, 16ms]
+  ✓  201 Created
+  ✓  Nace en PENDING
+↳ C2. Cambiar estado sin token (401)
+  PATCH http://localhost:3000/api/admin/orders/8/status [401 Unauthorized, 288B, 2ms]
+  ✓  401 Unauthorized
+↳ C3. Cambiar estado como USER (403)
+  PATCH http://localhost:3000/api/admin/orders/8/status [403 Forbidden, 289B, 3ms]
+  ✓  403 Forbidden
+↳ C4. status inválido (400)
+  PATCH http://localhost:3000/api/admin/orders/8/status [400 Bad Request, 320B, 2ms]
+  ✓  400 Bad Request
+  ✓  Mensaje de status
+↳ C5. Pedido inexistente (404)
+  PATCH http://localhost:3000/api/admin/orders/999999/status [404 Not Found, 274B, 4ms]
+  ✓  404 Not Found
+↳ C6. Confirmar pedido (200, $transaction)
+  PATCH http://localhost:3000/api/admin/orders/8/status [200 OK, 507B, 10ms]
+  ✓  200 OK
+  ✓  Queda CONFIRMED
+  ✓  Se registró en el historial
+↳ C7. Transición no permitida CONFIRMED → PENDING (409)
+  PATCH http://localhost:3000/api/admin/orders/8/status [409 Conflict, 300B, 4ms]
+  ✓  409 Conflict
+  ✓  Explica la transición
+↳ C8. Entregar pedido (200)
+  PATCH http://localhost:3000/api/admin/orders/8/status [200 OK, 670B, 22ms]
+  ✓  200 OK
+  ✓  Queda DELIVERED
+↳ C9. Historial como dueño (200)
+  GET http://localhost:3000/api/orders/8/history [200 OK, 696B, 11ms]
+  ✓  200 OK
+  ✓  Forma { orderId, status, history }
+  ✓  Dos cambios en orden cronológico
+  ✓  Nombre de quien cambió
+↳ C10. Historial de pedido ajeno (403)
+  GET http://localhost:3000/api/orders/8/history [403 Forbidden, 284B, 5ms]
+  ✓  403 Forbidden
+↳ C11. Historial de pedido inexistente (404)
+  GET http://localhost:3000/api/orders/999999/history [404 Not Found, 274B, 3ms]
+  ✓  404 Not Found
+↳ C12. Historial de la cancelación del cliente (200, reto opcional)
+  GET http://localhost:3000/api/orders/7/history [200 OK, 480B, 4ms]
+  ✓  200 OK
+  ✓  La cancelación del Lab 3 quedó registrada
+❏ Taller · D · Daniel Palacios (Mi cuenta e indicadores)
+↳ D1. Mi cuenta sin token (401)
+  GET http://localhost:3000/api/me [401 Unauthorized, 288B, 2ms]
+  ✓  401 Unauthorized
+↳ D2. Mi cuenta (200)
+  GET http://localhost:3000/api/me [200 OK, 557B, 4ms]
+  ✓  200 OK
+  ✓  Sin contraseña
+  ✓  Perfil 1:1 con _count de pedidos
+  ✓  lastLoginAt registrado por el login
+↳ D3. name < 3 caracteres (400)
+  PATCH http://localhost:3000/api/me [400 Bad Request, 293B, 2ms]
+  ✓  400 Bad Request
+  ✓  Mensaje de name
+↳ D4. phone no numérico (400)
+  PATCH http://localhost:3000/api/me [400 Bad Request, 288B, 2ms]
+  ✓  400 Bad Request
+  ✓  Mensaje de phone
+↳ D5. Body vacío (400)
+  PATCH http://localhost:3000/api/me [400 Bad Request, 275B, 2ms]
+  ✓  400 Bad Request
+↳ D6. Actualizar cuenta con escritura anidada (200)
+  PATCH http://localhost:3000/api/me [200 OK, 498B, 9ms]
+  ✓  200 OK
+  ✓  Actualiza User y Customer
+↳ D7. Contraseña actual incorrecta (401)
+  PATCH http://localhost:3000/api/me/password [401 Unauthorized, 286B, 94ms]
+  ✓  401 Unauthorized
+↳ D8. Nueva contraseña < 8 (400)
+  PATCH http://localhost:3000/api/me/password [400 Bad Request, 283B, 2ms]
+  ✓  400 Bad Request
+↳ D9. Nueva contraseña igual a la actual (400)
+  PATCH http://localhost:3000/api/me/password [400 Bad Request, 283B, 2ms]
+  ✓  400 Bad Request
+↳ D10. Cambiar contraseña (204)
+  PATCH http://localhost:3000/api/me/password [204 No Content, 134B, 190ms]
+  ✓  204 No Content
+↳ D11. Login con la nueva contraseña (200)
+  POST http://localhost:3000/api/auth/login [200 OK, 405B, 101ms]
+  ✓  200 OK
+  ✓  Entrega un JWT
+↳ D12. Estadísticas admin (200, $transaction)
+  GET http://localhost:3000/api/admin/stats [200 OK, 529B, 7ms]
+  ✓  200 OK
+  ✓  Indicadores
+  ✓  Ingresos total y promedio
+  ✓  Top 3 clientes como máximo
+↳ D13. Estadísticas con rango de fechas (200)
+  GET http://localhost:3000/api/admin/stats?from=2026-01-01&to=2030-12-31 [200 OK, 529B, 6ms]
+  ✓  200 OK
+  ✓  ordersByStatus es arreglo
+↳ D14. Fecha inválida (400)
+  GET http://localhost:3000/api/admin/stats?from=no-es-fecha [400 Bad Request, 271B, 2ms]
+  ✓  400 Bad Request
+↳ D15. Estadísticas como USER (403)
+  GET http://localhost:3000/api/admin/stats [403 Forbidden, 289B, 4ms]
+  ✓  403 Forbidden
+┌─────────────────────────┬───────────────────┬──────────────────┐
+│                         │          executed │           failed │
+├─────────────────────────┼───────────────────┼──────────────────┤
+│              iterations │                 1 │                0 │
+├─────────────────────────┼───────────────────┼──────────────────┤
+│                requests │                77 │                0 │
+├─────────────────────────┼───────────────────┼──────────────────┤
+│            test-scripts │                75 │                0 │
+├─────────────────────────┼───────────────────┼──────────────────┤
+│      prerequest-scripts │                 5 │                0 │
+├─────────────────────────┼───────────────────┼──────────────────┤
+│              assertions │               127 │                0 │
+├─────────────────────────┴───────────────────┴──────────────────┤
+│ total run duration: 2.6s                                       │
+├────────────────────────────────────────────────────────────────┤
+│ total data received: 14.05kB (approx)                          │
+├────────────────────────────────────────────────────────────────┤
+│ average response time: 20ms [min: 2ms, max: 190ms, s.d.: 40ms] │
+└────────────────────────────────────────────────────────────────┘

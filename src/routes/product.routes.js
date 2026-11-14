@@ -7,6 +7,8 @@ const router = Router();
 const onlyAdmin = [authenticateToken, requireRole("ADMIN")];
 
 router.get("/", productController.list);
+router.get("/search", productController.search);
+router.put("/:id/categories", onlyAdmin, productController.setCategories);
 router.get("/:id", productController.getById);
 router.post("/", onlyAdmin, productController.create);
 router.post("/lote", onlyAdmin, productController.createMany);

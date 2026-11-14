@@ -9,5 +9,6 @@ router.use(authenticateToken, requireRole("ADMIN"));
 router.get("/orders", adminController.listOrders);
 router.patch("/orders/:id/status", adminController.updateOrderStatus);
 router.get("/reports/top-products", adminController.topProducts);
+router.get("/stats", adminController.stats);
 
 module.exports = router;

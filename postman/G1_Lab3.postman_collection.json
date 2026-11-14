@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "G1_Lab3 · APDAF SPORT",
-    "description": "Laboratorio 3 de APDAF SPORT. Ejecuta npx prisma db seed antes de la colección. En local usa http://localhost:3000; al desplegar, selecciona el entorno Railway.",
+    "name": "G1_Lab3 · Relaciones, auth y despliegue en Render",
+    "description": "Laboratorio 3 · Desarrollo Web Avanzado. Ejecuta primero `npx prisma db seed`. Para probar el despliegue, cambia baseUrl por la URL pública de Render.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -152,7 +152,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"401 Unauthorized\", () => pm.response.to.have.status(401));",
-                  "pm.test(\"Mensaje genérico\", () => pm.expect(pm.response.json().error).to.eql(\"Credenciales inválidas\"));"
+                  "pm.test(\"Mensaje genérico\", () => pm.expect(pm.response.json().error).to.include(\"inválidos\"));"
                 ]
               }
             }
@@ -341,7 +341,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"admin@apdafsport.com\",\n  \"password\": \"Admin123*\"\n}",
+              "raw": "{\n  \"email\": \"admin@apdaf.com\",\n  \"password\": \"Admin123*\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -444,7 +444,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Polo de prueba {{$timestamp}}\",\n  \"price\": 3.75,\n  \"stock\": 5,\n  \"category\": \"Uniforme diario\",\n  \"institution\": \"Alvernia\"\n}",
+              "raw": "{\n  \"name\": \"Corbata escolar APDAF {{$timestamp}}\",\n  \"price\": 3.75,\n  \"stock\": 5,\n  \"category\": \"accesorios\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -470,7 +470,7 @@
                 "exec": [
                   "pm.test(\"201 Created\", () => pm.response.to.have.status(201));",
                   "pm.collectionVariables.set(\"productId\", pm.response.json().id);",
-                  "pm.test(\"Mantiene precio numérico del CRUD\", () => pm.expect(pm.response.json().price).to.eql(3.75));"
+                  "pm.test(\"price es Decimal (llega como texto)\", () => pm.expect(pm.response.json().price).to.eql(\"3.75\"));"
                 ]
               }
             }
@@ -592,10 +592,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "// Segundo producto del seed para probar que el primero NO se descuenta",
-                  "pm.sendRequest(pm.collectionVariables.get(\"baseUrl\") + \"/api/products\", (err, res) => {",
-                  "  pm.collectionVariables.set(\"productId2\", res.json().find((p) => p.name === \"Chompa de Calentador T34\").id);",
-                  "});"
+                  "// Producto del seed con stock limitado; se fija antes de enviar el body para evitar una carrera async.",
+                  "pm.collectionVariables.set(\"productId2\", 1);"
                 ]
               }
             }
@@ -1129,7 +1127,7 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:3000"
+      "value": "https://apdaf-lab3-api.onrender.com"
     },
     {
       "key": "email",

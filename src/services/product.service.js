@@ -8,7 +8,8 @@ const pick = (data) => {
   if (picked.price !== undefined) picked.price = parsePrice(picked.price);
   return picked;
 };
-const toResponse = (product) => ({ ...product, price: Number(product.price) });
+// Prisma Decimal se serializa como texto para conservar exactamente los centavos.
+const toResponse = (product) => ({ ...product, price: String(product.price) });
 const validate = (data, { partial = false } = {}) => {
   if (!data || typeof data !== "object" || Array.isArray(data)) return "Los datos del producto deben ser un objeto";
   if (!partial || data.name !== undefined) {
@@ -53,7 +54,11 @@ const update = async (id, data) => {
   if (error) throw new HttpError(400, error);
   return toResponse(await prisma.product.update({ where: { id }, data: await categoryData(data, true) }));
 };
-const remove = async (id) => { await prisma.product.delete({ where: { id } }); };
+const remove = async (id) => {
+  const linked = await prisma.orderItem.count({ where: { productId: id } });
+  if (linked > 0) throw new HttpError(409, "No se puede eliminar: el producto tiene pedidos relacionados");
+  await prisma.product.delete({ where: { id } });
+};
 const createMany = async (items) => prisma.$transaction(async (tx) => {
   const created = [];
   for (const [index, data] of items.entries()) {

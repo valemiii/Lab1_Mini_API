@@ -1,15 +1,23 @@
 const { Router } = require("express");
-const authRoutes = require("./auth.routes");
 const productRoutes = require("./product.routes");
+const authRoutes = require("./auth.routes");
 const orderRoutes = require("./order.routes");
 const adminRoutes = require("./admin.routes");
+const reviewRoutes = require("./review.routes");
+const categoryRoutes = require("./category.routes");
+const meRoutes = require("./me.routes");
+const resenasRoutes = require("./resenas");
 
 // Archivo principal de rutas: cada recurso se monta en su propio prefijo
 const router = Router();
 
-router.use("/auth", authRoutes); // → /api/auth
-router.use("/products", productRoutes); // → /api/products
-router.use("/orders", orderRoutes); // → /api/orders
-router.use("/admin", adminRoutes); // → /api/admin
+router.use("/products", productRoutes); // → /api/products · entidad principal del catálogo
+router.use("/auth", authRoutes);
+router.use("/orders", orderRoutes);
+router.use("/admin", adminRoutes);
+router.use(reviewRoutes);
+router.use("/categories", categoryRoutes);
+router.use("/me", meRoutes);
+router.use(resenasRoutes);
 
 module.exports = router;

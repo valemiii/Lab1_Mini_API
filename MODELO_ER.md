@@ -1,78 +1,40 @@
-# Modelo ER APDAF SPORT · Grupo G1 · Laboratorio 3
+# Modelo entidad-relación · Lab 3 · APDAF SPORT
 
-Este diagrama representa el esquema relacional implementado en Prisma. Las relaciones se programan en este laboratorio; cada política de borrado protege la integridad del historial y del catálogo.
-
-```mermaid
-erDiagram
-    USER ||--o| CUSTOMER : tiene_perfil
-    CATEGORY o|--o{ PRODUCT : clasifica
-    CUSTOMER ||--o{ ORDER : realiza
-    ORDER ||--|{ ORDER_ITEM : contiene
-    PRODUCT ||--o{ ORDER_ITEM : aparece_en
-
-    USER {
-        int id PK
-        string email UK
-        string password_hash
-        string name
-        enum role
-        datetime created_at
-    }
-    CUSTOMER {
-        int id PK
-        string full_name
-        string email UK
-        string phone
-        int user_id FK_UK
-    }
-    CATEGORY {
-        int id PK
-        string name UK
-        string description
-        boolean active
-    }
-    PRODUCT {
-        int id PK
-        string name
-        string sku UK
-        decimal price
-        int stock
-        int category_id FK
-        string institution
-        string category_label
-        datetime created_at
-    }
-    ORDER {
-        int id PK
-        enum status
-        decimal total
-        int customer_id FK
-        datetime created_at
-    }
-    ORDER_ITEM {
-        int order_id PK_FK
-        int product_id PK_FK
-        int quantity
-        decimal unit_price
-    }
+```text
+User 1 ──── 1 Customer 1 ──── N Order 1 ──── N OrderItem N ──── 1 Product N ──── 0..1 Category
+                                   └──────────── N:M Order ↔ Product ───────────┘
 ```
 
-## Cardinalidad y borrado
+## Entidades
 
-| Relación | Cardinalidad | Clave foránea | `onDelete` | Justificación |
+| Entidad | Tabla | Campos clave | Tipos destacados |
+|---|---|---|---|
+| User | `users` | `id`, `email` (único), `password_hash`, `role` | `Role` (enum USER/ADMIN), `DateTime` |
+| Customer | `customers` | `id`, `user_id` (único → 1:1), `email` (único) | `VarChar(15)` para teléfono |
+| Category | `categories` | `id`, `name` (único), `active` | `Boolean` |
+| Product | `products` | `id`, `sku` (único), `price`, `stock`, `category_id` | `Decimal(10,2)` para dinero |
+| Order | `orders` | `id`, `customer_id`, `status`, `total`, `created_at` | `OrderStatus` (enum), `Decimal(10,2)`, `DateTime` |
+| OrderItem | `order_items` | PK compuesta (`order_id`, `product_id`), `quantity`, `unit_price` | `Decimal(10,2)` |
+
+## Relaciones y decisión de `onDelete`
+
+| Relación | Cardinalidad | FK | onDelete | Justificación |
 |---|---|---|---|---|
-| User–Customer | 1:1 opcional para el usuario; obligatorio para Customer | `Customer.userId` único | `Cascade` | El perfil de cliente no tiene sentido sin su cuenta. Los usuarios ADMIN pueden no tener perfil comercial. |
-| Category–Product | 1:N | `Product.categoryId` nullable | `SetNull` | Al borrar una categoría se conserva el producto y queda sin categoría relacionada. |
-| Customer–Order | 1:N | `Order.customerId` | `Restrict` | Evita borrar un cliente que conserva historial de pedidos. |
-| Order–OrderItem | 1:N | `OrderItem.orderId` | `Cascade` | Las líneas son dependientes y se eliminan con su pedido. |
-| Product–OrderItem | 1:N | `OrderItem.productId` | `Restrict` | Impide borrar productos incluidos en el historial; también permite comprobar el 409. |
-| Order–Product | N:M explícita | Tabla puente `OrderItem` | Por las dos FKs de la tabla puente | La tabla almacena cantidad y precio unitario al momento de la compra. |
+| User → Customer | 1:1 | `customers.user_id` `@unique` | **Cascade** | El perfil de cliente no tiene sentido sin su cuenta: si se elimina el usuario, su perfil se elimina con él. |
+| Customer → Order | 1:N | `orders.customer_id` | **Restrict** | Los pedidos son historial comercial (ventas, reportes): no se permite borrar un cliente que ya compró; la API responde 409. |
+| Category → Product | 1:N | `products.category_id` (opcional) | **SetNull** | Si se elimina una categoría, los uniformes siguen en el catálogo, solo quedan sin categoría. |
+| Order → OrderItem | 1:N (lado Order de la N:M) | `order_items.order_id` | **Cascade** | Las líneas solo existen dentro de su pedido: borrar el pedido borra sus líneas. |
+| Product → OrderItem | 1:N (lado Product de la N:M) | `order_items.product_id` | **Restrict** | Un producto que aparece en pedidos no se puede borrar, para no perder el detalle ni el precio histórico; `DELETE /api/products/:id` responde 409. |
 
-## Mapeo y reglas
+**N:M explícita:** Order ↔ Product usa la tabla intermedia `OrderItem` porque guarda datos propios: `quantity` y `unitPrice` (precio al momento de la compra, aunque luego cambie el precio del producto).
 
-- Las tablas y columnas de negocio usan nombres snake_case mediante `@@map` y `@map`.
-- `Role` y `OrderStatus` son enums. Los importes se almacenan como `Decimal(10,2)` y las fechas como `DateTime`.
-- El SKU, correo de usuario y correo de perfil son únicos; `Customer.userId` es único para materializar 1:1.
-- Los índices de `Order` permiten filtrar por cliente/fecha y estado/fecha.
-- `stock` no puede quedar negativo: cada pedido lo decrementa con una actualización condicional dentro de una transacción.
-- El precio de `OrderItem` es una instantánea; cambios futuros en el catálogo no alteran pedidos anteriores.
+## Mapeo
+
+- **Enums:** `Role` (USER, ADMIN) y `OrderStatus` (PENDING, DELIVERED, CANCELLED).
+- **Tipos:** `Decimal(10,2)` para `price`, `total` y `unit_price` (evita errores de redondeo de `Float`); `DateTime` para `created_at`.
+- **Índices y únicos:** `@@id([orderId, productId])` (clave compuesta), `@@index([status, createdAt])` y `@@index([customerId, createdAt])` (compuestos, usados por el listado admin y "mis pedidos"), `@@index([categoryId])`; únicos en `users.email`, `customers.email`, `customers.user_id`, `products.sku` y `categories.name`.
+- **Nombres:** `@map` / `@@map` en snake_case (`full_name`, `password_hash`, `order_items`…).
+
+## Seed
+
+`prisma/seed.js` borra en orden inverso a las FK (OrderItem → Order → Customer → User → Product → Category) y crea categorías, productos, el usuario ADMIN, un cliente y un pedido de ejemplo.
