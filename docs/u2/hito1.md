@@ -6,7 +6,7 @@
 **Recurso API previsto:** `/api/resenas`  
 **Alcance de esta parte:** documentar el modelo y preparar `POST /api/resenas`.
 
-> **Estado del hito:** documentación completada. El POST y la conexión MongoDB son una actividad de implementación posterior; no son necesarios para documentar esta Parte 1.
+> **Estado del hito:** documentación alineada con el modelo Mongoose y el playground actuales; pendiente de revisión grupal. El POST y la conexión MongoDB ya están implementados y cuentan con evidencias de prueba.
 
 ## 1. Selección de datos y tipo NoSQL
 
@@ -22,29 +22,24 @@
 
 ## 3. Documento de ejemplo
 
-El siguiente documento es coherente con la propuesta y usa referencias lógicas a PostgreSQL:
+El siguiente ejemplo representa el documento almacenado mediante JSON extendido de MongoDB. Los UUID son ilustrativos: el POST requiere UUID de registros existentes en PostgreSQL. `_id` y las fechas se generan automáticamente cuando corresponde; no es necesario enviarlos al crear la reseña.
 
 ```json
 {
-  "_id": "665f1a2b9c7d4e0012345678",
-  "productoId": 42,
-  "usuarioId": 17,
-  "puntuacion": 5,
+  "_id": { "$oid": "665f1a2b9c7d4e0012345678" },
+  "productoId": "11111111-1111-4111-8111-111111111111",
+  "usuarioId": "22222222-2222-4222-8222-222222222222",
+  "calificacion": 5,
   "comentario": "La tela es cómoda y la talla coincide con la guía.",
   "imagenes": [
-    {
-      "url": "https://cdn.example.com/resenas/665f1a2b-1.jpg",
-      "descripcion": "Uniforme deportivo recibido"
-    }
+    "https://cdn.example.com/resenas/665f1a2b-1.jpg"
   ],
   "respuestaEmpresa": {
-    "texto": "¡Gracias por compartir tu experiencia!",
-    "respondidoPor": 3,
-    "respondidoEn": "2026-11-14T18:30:00.000Z"
+    "mensaje": "¡Gracias por compartir tu experiencia!",
+    "fecha": { "$date": "2026-11-14T18:30:00.000Z" }
   },
   "estado": "pendiente",
-  "createdAt": "2026-11-14T17:45:00.000Z",
-  "updatedAt": "2026-11-14T18:30:00.000Z"
+  "fechaCreacion": { "$date": "2026-11-14T17:45:00.000Z" }
 }
 ```
 
@@ -52,13 +47,15 @@ Para mantener reglas simples y consistentes, `estado` usa estos valores:
 
 - `pendiente`: reseña creada y todavía no moderada.
 - `publicada`: reseña visible para los usuarios.
-- `rechazada`: reseña no publicada por moderación.
+- `oculta`: reseña que no se muestra públicamente.
 
-Estos valores forman parte del contrato documental de esta propuesta y deben mantenerse iguales en el POST y en las validaciones del servicio.
+Estos valores coinciden con el enum del modelo Mongoose y del playground; la revisión con Daniel y Samuel sigue pendiente. `calificacion` es un entero obligatorio de 1 a 5 y `comentario` tiene entre 10 y 1000 caracteres después del recorte de espacios. `imagenes` es opcional y admite hasta cinco URL HTTP/HTTPS. `respuestaEmpresa` es un objeto embebido opcional con `mensaje` de 1 a 1000 caracteres y `fecha`. `fechaCreacion` se asigna automáticamente y `estado` vale `pendiente` por defecto. El virtual `estrellas` se calcula al devolver JSON y no se almacena.
 
 ## 4. Datos que permanecen en PostgreSQL
 
-PostgreSQL en Supabase conserva `usuarios`, `productos`, `categorias`, `inventario`, `ventas`, `detalle_ventas` y `proveedores`. Son datos transaccionales y relacionales: requieren integridad referencial, claves únicas, stock y operaciones de venta consistentes. En MongoDB, `productoId` y `usuarioId` son referencias lógicas a esos registros; no reemplazan las claves foráneas ni duplican sus datos.
+PostgreSQL y Prisma conservan los datos transaccionales de Unidad 1: usuarios (`users`), productos (`products`), categorías (`categories`), perfiles (`customers`), pedidos (`orders`) y sus detalles (`order_items`), entre otros. El stock permanece en `products`. Estas operaciones requieren integridad referencial, claves únicas y transacciones consistentes. Proveedores y abastecimiento son parte del dominio previsto, pero el esquema Prisma actual no define una tabla de proveedores.
+
+MongoDB guarda `productoId` y `usuarioId` como cadenas UUID que referencian lógicamente `products.uuid` y `users.uuid`. Las claves primarias internas de esas tablas siguen siendo enteros. El servicio comprueba ambos UUID antes de guardar; no hay una clave foránea automática entre motores ni se duplican los datos maestros. La configuración permite conservar Supabase o usar PostgreSQL local para pruebas.
 
 ## 5. Revisión y pendientes
 
@@ -67,4 +64,4 @@ PostgreSQL en Supabase conserva `usuarios`, `productos`, `categorias`, `inventar
 - [x] Se incluyó un JSON de ejemplo.
 - [x] Se documentaron los datos que permanecen en PostgreSQL.
 - [ ] Valeria revisa y etiqueta/cierra el Hito 1.
-- [ ] Implementar y probar `POST /api/resenas` como actividad posterior.
+- [x] POST implementado; evidencias de Runner y Compass en [valeria-pruebas-evidencias.md](./valeria-pruebas-evidencias.md).
