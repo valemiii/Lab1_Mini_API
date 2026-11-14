@@ -4,7 +4,7 @@
 **Colecciones:** `resenas` y `reportes_resenas`  
 **Recurso:** `/api/resenas`
 
-> **Estado del hito:** documentación alineada con la implementación actual; pendiente de revisión con Daniel y Samuel y de contrastar las preguntas con la plantilla original del kit.
+> **Estado del hito:** documentación alineada con la implementación actual y revisada por Valeria; pendiente de contrastar las preguntas con la plantilla original del kit.
 
 ## 1. Workload
 
@@ -55,4 +55,4 @@ El diagrama se encuentra en [diagrama-er-mongodb.md](./diagrama-er-mongodb.md). 
 - [x] Se documentaron las referencias lógicas a PostgreSQL.
 - [x] Se documentó `reportes_resenas.resenaId → resenas._id`.
 - [x] Se elaboró y enlazó el ER documental.
-- [ ] Daniel y Samuel revisan que nombres, tipos y reglas coincidan con la implementación final.
+- [x] Valeria revisó nombres, tipos y reglas y autorizó su revisión como sustitución de la revisión pendiente con Daniel y Samuel. No se registra una aprobación de ellos.

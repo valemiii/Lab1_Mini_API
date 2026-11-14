@@ -6,7 +6,7 @@
 **Recurso API previsto:** `/api/resenas`  
 **Alcance de esta parte:** documentar el modelo y preparar `POST /api/resenas`.
 
-> **Estado del hito:** documentación alineada con el modelo Mongoose y el playground actuales; pendiente de revisión grupal. El POST y la conexión MongoDB ya están implementados y cuentan con evidencias de prueba.
+> **Estado del hito:** documentación alineada con el modelo Mongoose y el playground actuales y revisada por Valeria. El POST y la conexión MongoDB ya están implementados y cuentan con evidencias de prueba.
 
 ## 1. Selección de datos y tipo NoSQL
 
@@ -49,7 +49,7 @@ Para mantener reglas simples y consistentes, `estado` usa estos valores:
 - `publicada`: reseña visible para los usuarios.
 - `oculta`: reseña que no se muestra públicamente.
 
-Estos valores coinciden con el enum del modelo Mongoose y del playground; la revisión con Daniel y Samuel sigue pendiente. `calificacion` es un entero obligatorio de 1 a 5 y `comentario` tiene entre 10 y 1000 caracteres después del recorte de espacios. `imagenes` es opcional y admite hasta cinco URL HTTP/HTTPS. `respuestaEmpresa` es un objeto embebido opcional con `mensaje` de 1 a 1000 caracteres y `fecha`. `fechaCreacion` se asigna automáticamente y `estado` vale `pendiente` por defecto. El virtual `estrellas` se calcula al devolver JSON y no se almacena.
+Estos valores coinciden con el enum del modelo Mongoose y del playground. Valeria autorizó su revisión final como sustitución de la revisión pendiente con Daniel y Samuel; no se atribuye aprobación a ellos. `calificacion` es un entero obligatorio de 1 a 5 y `comentario` tiene entre 10 y 1000 caracteres después del recorte de espacios. `imagenes` es opcional y admite hasta cinco URL HTTP/HTTPS. `respuestaEmpresa` es un objeto embebido opcional con `mensaje` de 1 a 1000 caracteres y `fecha`. `fechaCreacion` se asigna automáticamente y `estado` vale `pendiente` por defecto. El virtual `estrellas` se calcula al devolver JSON y no se almacena.
 
 ## 4. Datos que permanecen en PostgreSQL
 
@@ -63,5 +63,5 @@ MongoDB guarda `productoId` y `usuarioId` como cadenas UUID que referencian lóg
 - [x] Se justificó `resenas` como colección documental.
 - [x] Se incluyó un JSON de ejemplo.
 - [x] Se documentaron los datos que permanecen en PostgreSQL.
-- [ ] Valeria revisa y etiqueta/cierra el Hito 1.
+- [x] Revisión final de Valeria; publicación de la etiqueta sobre el commit verificado después de integrar esta revisión. No implica cerrar automáticamente el Issue #14, que también cubre el Hito 2.
 - [x] POST implementado; evidencias de Runner y Compass en [valeria-pruebas-evidencias.md](./valeria-pruebas-evidencias.md).

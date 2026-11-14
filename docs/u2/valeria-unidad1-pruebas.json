@@ -1,0 +1,250 @@
+{
+  "run": "QA-U1-1794690360462",
+  "date": "2026-11-14T21:06:04.216Z",
+  "scope": "HTTP real Unidad 1, API local puerto 3011 y lab2_apdaf; no es ejecucion Postman/Newman. Primer intento en puerto 3000 bloqueado por desconexion; esta ejecucion lo sustituye.",
+  "passed": 59,
+  "failed": 0,
+  "cleanup": true,
+  "results": [
+    {
+      "name": "Registro usuario y perfil sin password expuesto",
+      "status": "PASS"
+    },
+    {
+      "name": "Registro duplicado 409",
+      "status": "PASS"
+    },
+    {
+      "name": "Registro invalido 400",
+      "status": "PASS"
+    },
+    {
+      "name": "Login incorrecto 401",
+      "status": "PASS"
+    },
+    {
+      "name": "Login valido JWT",
+      "status": "PASS"
+    },
+    {
+      "name": "Segundo usuario de prueba",
+      "status": "PASS"
+    },
+    {
+      "name": "Admin de prueba y login real",
+      "status": "PASS"
+    },
+    {
+      "name": "Perfil /auth/me",
+      "status": "PASS"
+    },
+    {
+      "name": "Perfil /me y lastLoginAt",
+      "status": "PASS"
+    },
+    {
+      "name": "Sin token 401",
+      "status": "PASS"
+    },
+    {
+      "name": "Token invalido rechazado 403 segun contrato del middleware",
+      "status": "PASS"
+    },
+    {
+      "name": "Usuario sin rol admin 403",
+      "status": "PASS"
+    },
+    {
+      "name": "Actualizar perfil propio y perfil cliente",
+      "status": "PASS"
+    },
+    {
+      "name": "Perfil invalido 400",
+      "status": "PASS"
+    },
+    {
+      "name": "Password actual incorrecta 401",
+      "status": "PASS"
+    },
+    {
+      "name": "Cambio password y nuevo login",
+      "status": "PASS"
+    },
+    {
+      "name": "Crear categoria ADMIN",
+      "status": "PASS"
+    },
+    {
+      "name": "Categoria duplicada 409",
+      "status": "PASS"
+    },
+    {
+      "name": "Categoria sin token 401",
+      "status": "PASS"
+    },
+    {
+      "name": "Crear producto con precio decimal",
+      "status": "PASS"
+    },
+    {
+      "name": "Catalogo y detalle publico",
+      "status": "PASS"
+    },
+    {
+      "name": "Producto invalido 400",
+      "status": "PASS"
+    },
+    {
+      "name": "Usuario normal no crea producto 403",
+      "status": "PASS"
+    },
+    {
+      "name": "SKU duplicado 409",
+      "status": "PASS"
+    },
+    {
+      "name": "ID no numerico 400",
+      "status": "PASS"
+    },
+    {
+      "name": "Producto inexistente 404",
+      "status": "PASS"
+    },
+    {
+      "name": "Actualizar producto propio",
+      "status": "PASS"
+    },
+    {
+      "name": "Asignacion categorias N:M",
+      "status": "PASS"
+    },
+    {
+      "name": "Busqueda filtros orden paginacion",
+      "status": "PASS"
+    },
+    {
+      "name": "Busqueda orden invalido 400",
+      "status": "PASS"
+    },
+    {
+      "name": "Lote invalido rollback",
+      "status": "PASS"
+    },
+    {
+      "name": "Lote valido",
+      "status": "PASS"
+    },
+    {
+      "name": "Crear resena PostgreSQL",
+      "status": "PASS"
+    },
+    {
+      "name": "Resena duplicada 409",
+      "status": "PASS"
+    },
+    {
+      "name": "Resena rating invalido 400",
+      "status": "PASS"
+    },
+    {
+      "name": "Listar resenas promedio",
+      "status": "PASS"
+    },
+    {
+      "name": "Resena ajena protegida 403",
+      "status": "PASS"
+    },
+    {
+      "name": "Autor elimina resena propia",
+      "status": "PASS"
+    },
+    {
+      "name": "Pedido sin token 401",
+      "status": "PASS"
+    },
+    {
+      "name": "Pedido vacio 400",
+      "status": "PASS"
+    },
+    {
+      "name": "Pedido items repetidos 400",
+      "status": "PASS"
+    },
+    {
+      "name": "Pedido crea lineas total y descuenta stock",
+      "status": "PASS"
+    },
+    {
+      "name": "Stock insuficiente rollback 409",
+      "status": "PASS"
+    },
+    {
+      "name": "Rollback multiitem producto inexistente",
+      "status": "PASS"
+    },
+    {
+      "name": "Pedidos separados por propietario",
+      "status": "PASS"
+    },
+    {
+      "name": "Historial ajeno protegido 403",
+      "status": "PASS"
+    },
+    {
+      "name": "Cancelar pedido ajeno 403",
+      "status": "PASS"
+    },
+    {
+      "name": "Producto con pedido no se elimina 409",
+      "status": "PASS"
+    },
+    {
+      "name": "Cancelacion restaura stock y registra historial",
+      "status": "PASS"
+    },
+    {
+      "name": "Doble cancelacion 409 sin duplicar stock",
+      "status": "PASS"
+    },
+    {
+      "name": "Segundo pedido de prueba",
+      "status": "PASS"
+    },
+    {
+      "name": "Admin confirma entrega e historial",
+      "status": "PASS"
+    },
+    {
+      "name": "Transicion final invalida 409",
+      "status": "PASS"
+    },
+    {
+      "name": "Listado admin filtrado",
+      "status": "PASS"
+    },
+    {
+      "name": "Reporte top productos excluye cancelados",
+      "status": "PASS"
+    },
+    {
+      "name": "Estadisticas admin",
+      "status": "PASS"
+    },
+    {
+      "name": "Estadisticas fecha invalida 400",
+      "status": "PASS"
+    },
+    {
+      "name": "Borrado producto sin relaciones 204",
+      "status": "PASS"
+    },
+    {
+      "name": "Ruta inexistente 404",
+      "status": "PASS"
+    }
+  ],
+  "notes": [
+    "Se corrigio la expectativa del auditor para token invalido: el middleware existente devuelve 403; comprobacion HTTP repetida correctamente. No se modifico la autenticacion.",
+    "No constituye una prueba exhaustiva de todos los valores, concurrencia o despliegue remoto."
+  ]
+}
