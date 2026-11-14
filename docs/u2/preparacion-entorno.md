@@ -14,7 +14,8 @@ Desde la raíz del repositorio:
 
 ```powershell
 npm ci
-Copy-Item .env.example .env
+# Solo si no existe .env; conservar la configuración local existente.
+if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 ```
 
 Completa `.env` con la URL privada de PostgreSQL en Supabase y un `JWT_SECRET` local de al menos 32 caracteres. No compartas ni subas `.env`; Git lo excluye. Las credenciales de Mongo del ejemplo son solo locales y pueden cambiarse, siempre que coincidan con las variables del servicio.
@@ -45,7 +46,45 @@ Servidor ejecutándose en puerto 3000
 
 Si MongoDB no está disponible o `MONGODB_URI` falta, se informa el error y la API termina sin abrir el puerto HTTP.
 
-El `.env.example` usa una URI para ejecutar Node en el **host** (`localhost:27018`). El proyecto no tiene un servicio Compose para la API; si posteriormente Node se ejecuta dentro de Compose, debe usar el nombre del servicio y el puerto interno: `mongodb:27017`, no `localhost:27018`.
+El `.env.example` publicado actualmente contiene marcadores: hay que sustituirlos por valores locales. El proyecto no tiene un servicio Compose para la API; Node ejecutado en Windows conecta al puerto publicado (`localhost:27018`). Si posteriormente Node se ejecuta dentro de Compose, debe usar el nombre del servicio y el puerto interno: `mongodb:27017`, no `localhost:27018`.
+
+## Conflictos con servicios Docker ya existentes
+
+En el entorno de Valeria se comprobó que:
+
+| Recurso | Servicio que ya lo utiliza | Consecuencia |
+|---|---|---|
+| Nombre `lab2-postgres` | Contenedor previo, publicado en 5432 | Compose no puede crear otro contenedor con ese nombre. |
+| Puerto 5433 | `espe-postgres` | El PostgreSQL de este Compose no puede publicar el mismo puerto. |
+| Puerto 27018 | `espe-mongo` | El MongoDB de este Compose no puede arrancar en el mismo puerto. |
+| Puerto 3000 | Otra ejecución de la API, cuando está activa | Una segunda ejecución produce `EADDRINUSE`. |
+
+`docker compose config --quiet` pasa: la configuración es válida, pero `docker compose up -d` no puede completar el arranque mientras esos recursos estén ocupados. No se eliminó ni renombró ningún contenedor previo y no se borraron volúmenes. El contenedor nuevo `grupal-mongodb-1` quedó creado pero detenido por el conflicto.
+
+Para este equipo se reutilizaron los servicios existentes autorizados. Comprobarlos sin modificarlos:
+
+```powershell
+docker ps --format "{{.Names}} {{.Status}} {{.Ports}}"
+docker compose ps -a
+```
+
+Si están detenidos, iniciar solo los contenedores existentes de esta instalación:
+
+```powershell
+docker start espe-postgres espe-mongo
+```
+
+Configurar `.env` con PostgreSQL en `localhost:5433`, base `lab2_apdaf`, y MongoDB en `127.0.0.1:27018`, base `apdaf_sport`, con `authSource=admin`. Usar las credenciales locales de esos servicios; no necesariamente coinciden con las credenciales de ejemplo del Compose del proyecto. No publicar `.env`.
+
+La base `lab2_apdaf` se creó y se aplicaron siete migraciones. Si se prepara otro entorno vacío, crear primero la base autorizada y luego ejecutar:
+
+```powershell
+npm run db:generate
+npm run db:deploy
+npm run dev
+```
+
+Mantener una sola ejecución de la API en el puerto 3000. Detener con Ctrl+C únicamente la ejecución propia duplicada. En una máquina sin conflictos se puede usar `docker compose up -d`; en esta máquina la alternativa verificada es reutilizar los servicios anteriores. No ejecutar `docker compose down -v` ni eliminar contenedores ajenos para liberar puertos.
 
 ## Compass y MongoDB for VS Code
 
@@ -64,6 +103,6 @@ Cada integrante debe levantar y configurar su propio entorno local; no compartan
 
 ## Referencias a PostgreSQL y datos de prueba
 
-En el Prisma actual, `Product.id` y `User.id` son `Int` autoincrementales (`prisma/schema.prisma`). El documento de diseño de Bri muestra `productoId: 18` y `clienteId: 42`, es decir, números, no UUID. Además, `clienteId` debe acordarse como referencia a `User.id` o a `Customer.id`: el esquema tiene ambos modelos y ambos IDs son enteros independientes; autenticación y reseñas existentes usan `User.id`. No cambies el esquema ni el documento aprobado sin acordarlo con el equipo.
+En Prisma, `Product.id` y `User.id` siguen siendo `Int` autoincrementales. Ambos modelos también tienen `uuid` único. El POST MongoDB recibe `productoId` y `usuarioId` como cadenas UUID y consulta `products.uuid` y `users.uuid`; no utiliza `Customer.id` ni un campo `clienteId`. Hitos 1 y 2 ya documentan este contrato.
 
-`prisma/seed.js` prepara el producto `APD-CAM-001` y los usuarios de prueba `admin@apdaf.com` y `ana@correo.com`; Prisma asigna los IDs al crear los registros, así que hay que consultarlos en la base activa y no asumir los números del ejemplo de Bri. El seed actual borra registros de pedidos, usuarios, clientes, productos y categorías antes de recrearlos. **No lo ejecutes contra Supabase compartido** sin autorización y respaldo. Samuel necesitará IDs reales de un producto y un usuario existentes para validar las referencias cruzadas.
+Consultar UUID existentes con `SELECT uuid FROM products LIMIT 1;` y `SELECT uuid FROM users LIMIT 1;`. El seed actual borra registros antes de recrearlos: **no ejecutarlo contra Supabase compartido** sin autorización y respaldo. Para las pruebas de Valeria se crearon registros locales identificables sin ejecutar ese seed. Sus UUID y las evidencias están en [valeria-pruebas-evidencias.md](./valeria-pruebas-evidencias.md).
