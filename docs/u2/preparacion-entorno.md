@@ -4,7 +4,7 @@ Guía para iniciar el entorno local de APDAF SPORT y ejecutar el playground y el
 
 ## Regla del proyecto: conservar `.env.example`
 
-Por indicación de Valeria, `.env.example` debe conservarse exactamente como ella lo dejó. No editarlo, completar sus marcadores, normalizarlo ni reemplazar sus valores durante tareas de configuración, documentación o verificación. Cualquier modificación requiere una nueva autorización explícita de Valeria.
+Por indicación de Valeria, `.env.example` debe conservarse censurado con asteriscos: sin puertos, enlaces, credenciales ni valores de configuración visibles. No completar sus marcadores, normalizarlo ni reemplazar sus valores durante tareas de configuración, documentación o verificación, ni publicar una versión sin censurar. Cada integrante conoce las variables y configura sus valores únicamente en su `.env` local. Cualquier modificación requiere una nueva autorización explícita de Valeria.
 
 La configuración de cada instalación se realiza únicamente en su `.env` local, excluido de Git. No sobrescribir una configuración local existente ni publicar credenciales. Si una plantilla del laboratorio solicita cambios en `.env.example`, documentar la diferencia sin modificar el archivo.
 
