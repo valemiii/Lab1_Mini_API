@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "G1 ? U2 Hito 3 ? Valeria ? Validaciones y evidencias",
-    "description": "Colecci?n equivalente preparada a partir de la colecci?n existente de Samuel; kit no disponible en el repositorio. Configurar baseUrl, productoId y usuarioId con UUID existentes de PostgreSQL. No incluye credenciales. Ejecuci?n real pendiente; ver docs/u2/valeria-pruebas-evidencias.md.",
+    "name": "G1 · U2 Hito 3 · Valeria · Validaciones y evidencias",
+    "description": "Adaptada y contrastada con LabU2_Kit.zip. Configurar baseUrl, productoId y usuarioId con registros existentes en PostgreSQL. Resultados históricos y nuevos en docs/u2/valeria-pruebas-evidencias.md.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -32,8 +32,8 @@
               "pm.test(\"Incluye el virtual estrellas\", () => pm.expect(resena.estrellas).to.eql(\"★★★★★\"));",
               "pm.test(\"Normaliza comentario y asigna fecha\", () => { pm.expect(resena.comentario).to.eql(\"La tela es cómoda y la talla coincide con la guía.\"); pm.expect(Number.isNaN(Date.parse(resena.fechaCreacion))).to.eql(false); });",
               "pm.test(\"Colección y estado predeterminado\", () => pm.expect(resena.estado).to.eql(\"pendiente\"));",
-              "pm.test(\"Identificador MongoDB v?lido\", () => pm.expect(resena._id).to.match(/^[a-f0-9]{24}$/i));",
-              "pm.test(\"Documento conserva referencias, calificaci?n e im?genes\", () => { const entrada = JSON.parse(pm.variables.replaceIn(pm.request.body.raw)); pm.expect(resena.productoId).to.eql(entrada.productoId); pm.expect(resena.usuarioId).to.eql(entrada.usuarioId); pm.expect(resena.calificacion).to.eql(entrada.calificacion); pm.expect(resena.imagenes).to.eql(entrada.imagenes); });",
+              "pm.test(\"Identificador MongoDB válido\", () => pm.expect(resena._id).to.match(/^[a-f0-9]{24}$/i));",
+              "pm.test(\"Documento conserva referencias, calificación e imágenes\", () => { const entrada = JSON.parse(pm.variables.replaceIn(pm.request.body.raw)); pm.expect(resena.productoId).to.eql(entrada.productoId); pm.expect(resena.usuarioId).to.eql(entrada.usuarioId); pm.expect(resena.calificacion).to.eql(entrada.calificacion); pm.expect(resena.imagenes).to.eql(entrada.imagenes); });",
               "if (pm.response.code === 201) pm.collectionVariables.set(\"resenaCreadaId\", resena._id);"
             ]
           }
@@ -41,7 +41,69 @@
       ]
     },
     {
-      "name": "02 · Calificación fuera de rango (400 por campo)",
+      "name": "02 · POST vacío: campos obligatorios",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": "{{baseUrl}}/api/resenas"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"400 Bad Request\", () => pm.response.to.have.status(400));",
+              "pm.test(\"Mensaje exacto: productoId\", () => { const d = pm.response.json().detalles.find(d => d.campo === \"productoId\"); pm.expect(d).to.be.an(\"object\"); pm.expect(d.mensaje).to.eql(\"productoId es obligatorio\"); });",
+              "pm.test(\"Mensaje exacto: usuarioId\", () => { const d = pm.response.json().detalles.find(d => d.campo === \"usuarioId\"); pm.expect(d).to.be.an(\"object\"); pm.expect(d.mensaje).to.eql(\"usuarioId es obligatorio\"); });",
+              "pm.test(\"Mensaje exacto: calificacion\", () => { const d = pm.response.json().detalles.find(d => d.campo === \"calificacion\"); pm.expect(d).to.be.an(\"object\"); pm.expect(d.mensaje).to.eql(\"calificacion es obligatoria\"); });",
+              "pm.test(\"Mensaje exacto: comentario\", () => { const d = pm.response.json().detalles.find(d => d.campo === \"comentario\"); pm.expect(d).to.be.an(\"object\"); pm.expect(d.mensaje).to.eql(\"comentario es obligatorio\"); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 · POST inválido: entero y enum",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"productoId\": \"11111111-1111-4111-8111-111111111111\",\n  \"usuarioId\": \"22222222-2222-4222-8222-222222222222\",\n  \"calificacion\": 2.5,\n  \"comentario\": \"Comentario suficientemente largo para validar.\",\n  \"estado\": \"invalido\"\n}"
+        },
+        "url": "{{baseUrl}}/api/resenas"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"400 Bad Request\", () => pm.response.to.have.status(400));",
+              "pm.test(\"Mensaje exacto: calificacion\", () => { const d = pm.response.json().detalles.find(d => d.campo === \"calificacion\"); pm.expect(d).to.be.an(\"object\"); pm.expect(d.mensaje).to.eql(\"calificacion debe ser un número entero\"); });",
+              "pm.test(\"Mensaje exacto: estado\", () => { const d = pm.response.json().detalles.find(d => d.campo === \"estado\"); pm.expect(d).to.be.an(\"object\"); pm.expect(d.mensaje).to.eql(\"estado debe ser uno de: pendiente, publicada u oculta\"); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 · Calificación fuera de rango",
       "request": {
         "method": "POST",
         "header": [
@@ -64,14 +126,14 @@
             "exec": [
               "pm.test(\"400 Bad Request\", () => pm.response.to.have.status(400));",
               "pm.test(\"Indica el campo calificacion\", () => pm.expect(pm.response.json().detalles.map((detalle) => detalle.campo)).to.include(\"calificacion\"));",
-              "pm.test(\"Mensaje espec?fico de calificacion\", () => { const detalle = pm.response.json().detalles.find(d => d.campo === \"calificacion\"); pm.expect(detalle).to.be.an(\"object\"); pm.expect(detalle.mensaje).to.include(\"calificacion\"); });"
+              "pm.test(\"Mensaje específico de calificacion\", () => { const detalle = pm.response.json().detalles.find(d => d.campo === \"calificacion\"); pm.expect(detalle).to.be.an(\"object\"); pm.expect(detalle.mensaje).to.include(\"calificacion\"); });"
             ]
           }
         }
       ]
     },
     {
-      "name": "03 · Comentario inválido después de trim (400 por campo)",
+      "name": "05 · Comentario inválido después de trim",
       "request": {
         "method": "POST",
         "header": [
@@ -94,7 +156,7 @@
             "exec": [
               "pm.test(\"400 Bad Request\", () => pm.response.to.have.status(400));",
               "pm.test(\"Valida comentario normalizado\", () => pm.expect(pm.response.json().detalles.map((detalle) => detalle.campo)).to.include(\"comentario\"));",
-              "pm.test(\"Mensaje espec?fico de comentario\", () => { const detalle = pm.response.json().detalles.find(d => d.campo === \"comentario\"); pm.expect(detalle).to.be.an(\"object\"); pm.expect(detalle.mensaje).to.include(\"comentario\"); });"
+              "pm.test(\"Mensaje específico de comentario\", () => { const detalle = pm.response.json().detalles.find(d => d.campo === \"comentario\"); pm.expect(detalle).to.be.an(\"object\"); pm.expect(detalle.mensaje).to.include(\"comentario\"); });"
             ]
           }
         }

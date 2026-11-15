@@ -10,11 +10,11 @@
 
 ## 1. Selección de datos y tipo NoSQL
 
-| Dato de APDAF SPORT | Tipo NoSQL elegido | Justificación según estructura y uso |
-|---|---|---|
-| Reseñas y valoraciones de productos | Documental | Una reseña reúne en un mismo documento la valoración, el comentario, imágenes y una eventual respuesta de la empresa. Estos campos se consultan juntos desde `/api/resenas` y pueden evolucionar sin alterar un esquema relacional rígido. |
-| Personalización de uniformes | Documental | Una solicitud puede contener opciones variables por prenda (talla, medidas, bordado, colores y observaciones). Un documento permite conservar esas opciones anidadas y agregar nuevas personalizaciones sin crear una tabla por cada variante. |
-| Historial de actividad de clientes | Orientado a eventos/documental | La actividad se registra como eventos con fecha, tipo y metadatos variables. El formato documental admite distintos tipos de evento y facilita consultas por cliente y período; su retención y particionado se definirían si el volumen crece. |
+| Dato | ¿Por qué no encaja bien en una tabla? | Tipo NoSQL | Razón |
+|---|---|---|---|
+| Reseñas y valoraciones de productos | Las imágenes opcionales y la respuesta anidada exigirían tablas dependientes y joins para leer una unidad. | Documental | Una reseña reúne valoración, comentario, imágenes y una eventual respuesta de la empresa. Se consultarían juntos en el detalle previsto; actualmente `/api/resenas` solo implementa POST. El documento conserva el contenido dependiente en una unidad. |
+| Personalización de uniformes | Las opciones variables por prenda producen columnas vacías o tablas auxiliares por variante. | Documental | Una solicitud puede contener talla, medidas, bordado, colores y observaciones. Un documento permite conservar esas opciones anidadas y agregar nuevas personalizaciones. Caso propuesto, sin implementación en esta parte. |
+| Historial de actividad de clientes | Cada tipo de actividad tiene metadatos distintos, difíciles de representar en columnas fijas. | Documental | La actividad se registra como eventos con fecha, tipo y metadatos variables. El formato documental admite distintos tipos de evento y facilita consultas por cliente y período; su retención y particionado se definirían si el volumen crece. |
 
 ## 2. ¿Por qué `resenas` es la colección documental?
 
