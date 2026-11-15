@@ -52,8 +52,8 @@ El diagrama se encuentra en [diagrama-er-mongodb.md](./diagrama-er-mongodb.md). 
 ## 4. Revisión y control de consistencia
 
 - [x] Se documentó el workload con actor, operación, lectura/escritura y frecuencia estimada.
-- [x] Se respondieron tres preguntas de decisión de embeber o referenciar.
-- [ ] Contrastar las preguntas con la redacción exacta de la plantilla original del kit.
+- [x] Se completaron las cinco relaciones con las seis columnas exactas del kit.
+- [x] Se contrastó la tabla con la plantilla original de `LabU2_Kit.zip`.
 - [x] Se justificó el embebido de `imagenes` y `respuestaEmpresa`.
 - [x] Se documentaron las referencias lógicas a PostgreSQL.
 - [x] Se documentó `reportes_resenas.resenaId → resenas._id`.
