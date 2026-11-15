@@ -2,6 +2,12 @@
 
 Guía para iniciar el entorno local de APDAF SPORT y ejecutar el playground y el POST de reseñas ya implementados.
 
+## Regla del proyecto: conservar `.env.example`
+
+Por indicación de Valeria, `.env.example` debe conservarse exactamente como ella lo dejó. No editarlo, completar sus marcadores, normalizarlo ni reemplazar sus valores durante tareas de configuración, documentación o verificación. Cualquier modificación requiere una nueva autorización explícita de Valeria.
+
+La configuración de cada instalación se realiza únicamente en su `.env` local, excluido de Git. No sobrescribir una configuración local existente ni publicar credenciales. Si una plantilla del laboratorio solicita cambios en `.env.example`, documentar la diferencia sin modificar el archivo.
+
 ## Playground aislado de Parte 1
 
 El script reinicia exclusivamente `resenas` y `reportes_resenas` de la base reservada `apdaf_u2_playground_test`; nunca ejecutarlo sobre la base de evidencias. Selecciona esa base explícitamente en su código. Las credenciales siguientes son ejemplos del Docker Compose, no necesariamente las del servicio local existente:
