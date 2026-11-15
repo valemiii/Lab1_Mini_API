@@ -2,6 +2,14 @@
 
 ```mermaid
 erDiagram
+    PG_PRODUCTS ||--o{ RESENAS : "referencia logica productoId -> uuid"
+    PG_USERS ||--o{ RESENAS : "referencia logica usuarioId -> uuid"
+    PG_PRODUCTS {
+        string uuid UK "PostgreSQL; PK interna id entero"
+    }
+    PG_USERS {
+        string uuid UK "PostgreSQL; PK interna id entero"
+    }
     RESENAS ||--o{ REPORTES_RESENAS : "resenaId -> _id"
     RESENAS {
         objectId _id PK

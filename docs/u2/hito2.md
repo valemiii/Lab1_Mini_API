@@ -4,7 +4,7 @@
 **Colecciones:** `resenas` y `reportes_resenas`  
 **Recurso:** `/api/resenas`
 
-> **Estado del hito:** documentación alineada con la implementación actual y revisada por Valeria; pendiente de contrastar las preguntas con la plantilla original del kit.
+> **Estado del hito:** documentación alineada con la implementación actual y revisada por Valeria; contrastada con `LabU2_Kit.zip` (Descargas), plantillas de Hitos 1 y 2 y colección de Hito 3.
 
 ## 1. Workload
 
@@ -12,26 +12,29 @@ Las frecuencias son estimaciones para la primera versión, porque no existen mé
 
 El workload incluye operaciones previstas. Esta Parte 1 implementa únicamente `POST /api/resenas` en MongoDB; las consultas y la moderación no implican que existan endpoints adicionales. Los actores describen el uso previsto: la ruta POST actual no incorpora middleware de autenticación y valida la existencia del UUID de usuario recibido.
 
-| Actor | Operación | Lectura / escritura | Frecuencia estimada |
-|---|---|---|---|
-| Cliente | Crear una reseña (`POST /api/resenas`) | Escritura en `resenas`; lectura de `products.uuid` y `users.uuid` en PostgreSQL para validar referencias | 10–30 por día |
-| Cliente o visitante | Consultar reseñas por UUID de producto (previsto) | Lectura de `resenas` filtrada por `productoId` | 100–300 por día |
-| Cliente autenticado | Consultar sus reseñas | Lectura de `resenas` filtrada por `usuarioId` | 10–40 por día |
-| Personal de APDAF SPORT | Responder o moderar una reseña | Escritura/actualización de `respuestaEmpresa` y `estado` en `resenas` | 5–20 por día |
-| Cliente o personal | Consultar imágenes y respuesta de una reseña | Lectura del documento de `resenas` | Incluida en cada consulta de detalle |
-| Cliente o personal | Crear un reporte de reseña | Escritura en `reportes_resenas`, con `resenaId` | 0–10 por día |
-| Personal de APDAF SPORT | Revisar reportes pendientes | Lectura de `reportes_resenas` por `estado` y `fechaReporte`, relacionada con `resenas` | 1–10 consultas por día |
-| Personal de APDAF SPORT | Resolver un reporte (previsto) | Actualización de `estado` a `revisado` o `descartado` en `reportes_resenas` | 0–10 por día |
+| Actor | Operación | Lectura o escritura | Frecuencia (por día/hora) | Datos que usa |
+|---|---|---|---|---|
+| Cliente | Crear reseña (implementada: POST) | Escritura MongoDB y lectura PostgreSQL | 10–30/día | resenas; products.uuid, users.uuid |
+| Visitante | Consultar por producto (prevista) | Lectura | 100–300/día | productoId, comentario, calificacion, imagenes, respuestaEmpresa, estado |
+| Cliente | Consultar sus reseñas (prevista) | Lectura | 10–40/día | usuarioId y documento resenas |
+| Personal | Responder/moderar (prevista) | Escritura | 5–20/día | respuestaEmpresa, estado |
+| Cliente | Crear reporte (prevista; ejemplo en playground) | Escritura | 0–10/día | resenaId, motivo, estado, fechaReporte |
+| Personal | Revisar reportes (prevista; lookup en playground) | Lectura | 1–10/día | reportes_resenas y resenas |
+| Personal | Resolver reporte (prevista) | Escritura | 0–10/día | reportes_resenas.estado |
+
+Todas las frecuencias anteriores son estimaciones, no mediciones. Imágenes y respuesta se leen en las consultas previstas de reseñas, sin frecuencia adicional.
 
 ## 2. Embeber o referenciar
 
-Se responden tres preguntas de decisión para el modelo documental. La plantilla original del kit no está disponible en el repositorio; no se ha verificado que esta sea su redacción exacta.
+Comparación realizada con las seis columnas exactas de la plantilla del kit:
 
-| Pregunta | Decisión para APDAF SPORT |
-|---|---|
-| ¿Los datos se consultan juntos? | Sí, una reseña se consulta junto con sus imágenes y la respuesta de la empresa; por eso esos datos se embeben en `resenas`. |
-| ¿Los datos se actualizan juntos? | Normalmente sí para el contenido de la reseña, sus imágenes y `respuestaEmpresa`; se actualizan dentro del ciclo de moderación de la misma reseña. Los reportes tienen revisión independiente y no se embeben. |
-| ¿La relación y el crecimiento justifican embeber? | `imagenes` y `respuestaEmpresa` son datos dependientes de una sola reseña y de tamaño acotado; se embeben. Los reportes pueden multiplicarse, tienen otro ciclo de vida y permisos, por lo que se guardan en una colección aparte y referencian la reseña. |
+| Relación | Cardinalidad | ¿Se lee junto? | ¿Cambia seguido? | ¿Crece sin límite? | Decisión |
+|---|---|---|---|---|---|
+| Reseña e imágenes | 1:0..5 | Sí, detalle previsto | No, contenido dependiente | No, máximo 5 URL | Embebida: arreglo imagenes |
+| Reseña y respuesta de la empresa | 1:0..1 | Sí, detalle previsto | Ocasionalmente, al responder | No, un objeto y mensaje hasta 1000 caracteres | Embebida: respuestaEmpresa sin _id |
+| Reseña y producto de PostgreSQL | N:1 | Solo UUID al crear; detalle de producto separado | Stock y datos cambian independientemente | No dentro de la reseña; muchas reseñas por producto | Referenciada lógicamente: productoId → products.uuid |
+| Reseña y usuario de PostgreSQL | N:1 | Solo UUID al crear; perfil separado | Perfil cambia independientemente | No dentro de la reseña; muchas reseñas por usuario | Referenciada lógicamente: usuarioId → users.uuid |
+| Reseña y reportes de reseña | 1:N | Al revisar reportes mediante lookup | Sí, revisión independiente prevista | Sí, sin límite definido de reportes | Referenciada entre colecciones: reportes_resenas.resenaId → resenas._id |
 
 ### Decisiones resultantes
 
@@ -49,8 +52,8 @@ El diagrama se encuentra en [diagrama-er-mongodb.md](./diagrama-er-mongodb.md). 
 ## 4. Revisión y control de consistencia
 
 - [x] Se documentó el workload con actor, operación, lectura/escritura y frecuencia estimada.
-- [x] Se respondieron tres preguntas de decisión de embeber o referenciar.
-- [ ] Contrastar las preguntas con la redacción exacta de la plantilla original del kit.
+- [x] Se completaron las cinco relaciones con las seis columnas exactas del kit.
+- [x] Se contrastó la tabla con la plantilla original de `LabU2_Kit.zip`.
 - [x] Se justificó el embebido de `imagenes` y `respuestaEmpresa`.
 - [x] Se documentaron las referencias lógicas a PostgreSQL.
 - [x] Se documentó `reportes_resenas.resenaId → resenas._id`.

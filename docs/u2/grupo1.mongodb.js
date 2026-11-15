@@ -1,11 +1,14 @@
 // Hito 2 · Playground MongoDB de APDAF SPORT · Grupo G1
 // Ejecutar en mongosh conectado al entorno local:
-//   mongosh "mongodb://localhost:27018" docs/u2/grupo1.mongodb.js
+//   mongosh "mongodb://apdaf_admin:apdaf_local_password@localhost:27018/apdaf_u2_playground_test?authSource=admin" --file docs/u2/grupo1.mongodb.js
+// Credenciales de ejemplo de Compose: adaptar al servicio local existente.
+// Reservar apdaf_u2_playground_test para pruebas; este script reinicia sus dos colecciones.
 //
 // Las referencias productoId y usuarioId apuntan a PostgreSQL. El $lookup de
 // este ejercicio solo une reportes_resenas con resenas dentro de MongoDB.
 
-use("apdaf_sport");
+db = db.getSiblingDB("apdaf_u2_playground_test");
+if (db.getName() !== "apdaf_u2_playground_test") throw new Error("Se requiere la base aislada de pruebas");
 
 const uuidPattern = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$";
 const urlPattern = "^https?:\\/\\/[^\\s]+$";
@@ -106,7 +109,7 @@ const resenasValidas = [
 ];
 
 const insercionValida = db.resenas.insertMany(resenasValidas);
-print("\nInserciones válidas: " + insercionValida.insertedIds.length);
+print("\nInserciones válidas: " + Object.keys(insercionValida.insertedIds).length);
 printjson(insercionValida);
 
 function camposQueFallaron(error) {
@@ -116,7 +119,10 @@ function camposQueFallaron(error) {
     if (!detalle || typeof detalle !== "object") return;
     if (detalle.propertyName) campos.add(detalle.propertyName);
     if (detalle.fieldName) campos.add(detalle.fieldName);
-    if (Array.isArray(detalle.details)) detalle.details.forEach(recorrer);
+    Object.values(detalle).forEach(valor => {
+      if (Array.isArray(valor)) valor.forEach(recorrer);
+      else if (valor && typeof valor === "object") recorrer(valor);
+    });
   }
 
   recorrer(error?.errInfo?.details);
@@ -126,9 +132,11 @@ function camposQueFallaron(error) {
 function probarInsercionRechazada(nombre, documento, campoEsperado) {
   try {
     db.resenas.insertOne(documento);
-    print("ERROR: la inserción " + nombre + " fue aceptada inesperadamente");
+    throw new Error("Inserción aceptada inesperadamente: " + nombre);
   } catch (error) {
+    if (error.code !== 121) throw error;
     const campos = camposQueFallaron(error);
+    if (!campos.includes(campoEsperado)) throw error;
     print("\nInserción rechazada: " + nombre);
     print("Campo que falló: " + (campos.join(", ") || campoEsperado));
     print("Mensaje: " + error.message);
@@ -194,7 +202,7 @@ const reportesInsertados = db.reportes_resenas.insertMany([
   },
 ]);
 
-print("\nReportes insertados: " + reportesInsertados.insertedIds.length);
+print("\nReportes insertados: " + Object.keys(reportesInsertados.insertedIds).length);
 printjson(reportesInsertados);
 
 const reportesConResena = db.reportes_resenas

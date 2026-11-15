@@ -1,6 +1,29 @@
 # Preparación del entorno U2
 
-Guía para iniciar el entorno local de APDAF SPORT antes de implementar el playground de MongoDB y el endpoint de reseñas.
+Guía para iniciar el entorno local de APDAF SPORT y ejecutar el playground y el POST de reseñas ya implementados.
+
+## Regla del proyecto: conservar `.env.example`
+
+Por indicación de Valeria, `.env.example` debe conservarse exactamente como ella lo dejó. No editarlo, completar sus marcadores, normalizarlo ni reemplazar sus valores durante tareas de configuración, documentación o verificación. Cualquier modificación requiere una nueva autorización explícita de Valeria.
+
+La configuración de cada instalación se realiza únicamente en su `.env` local, excluido de Git. No sobrescribir una configuración local existente ni publicar credenciales. Si una plantilla del laboratorio solicita cambios en `.env.example`, documentar la diferencia sin modificar el archivo.
+
+## Playground aislado de Parte 1
+
+El script reinicia exclusivamente `resenas` y `reportes_resenas` de la base reservada `apdaf_u2_playground_test`; nunca ejecutarlo sobre la base de evidencias. Selecciona esa base explícitamente en su código. Las credenciales siguientes son ejemplos del Docker Compose, no necesariamente las del servicio local existente:
+
+```powershell
+mongosh "mongodb://apdaf_admin:apdaf_local_password@localhost:27018/apdaf_u2_playground_test?authSource=admin" --file docs/u2/grupo1.mongodb.js
+```
+
+Si solo está disponible mongosh dentro del contenedor existente `espe-mongo`, ejecutar desde PowerShell:
+
+```powershell
+docker cp docs/u2/grupo1.mongodb.js espe-mongo:/tmp/apdaf-u2-parte1-playground.js
+docker exec espe-mongo sh -c 'mongosh --quiet --username "$MONGO_INITDB_ROOT_USERNAME" --password "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin --file /tmp/apdaf-u2-parte1-playground.js'
+```
+
+Usar un archivo con `--file`, no pegarlo en el REPL: la agregación encadenada ocupa varias líneas. Resultado esperado: dos inserciones válidas, rechazos por `calificacion` y `estado`, dos reportes y dos resultados de `$lookup` con `$unwind`. Las referencias UUID del playground son ilustrativas y no consultan PostgreSQL. La colección Postman y sus resultados nuevos están descritos en [valeria-pruebas-evidencias.md](./valeria-pruebas-evidencias.md).
 
 ## Requisitos detectados
 

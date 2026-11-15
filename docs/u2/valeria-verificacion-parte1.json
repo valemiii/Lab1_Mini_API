@@ -1,0 +1,31 @@
+{
+  "fecha": "2026-11-14",
+  "herramienta": "Node.js, fetch, Prisma y Mongoose; no Postman",
+  "unidad1": {
+    "operacion": "GET /api/products",
+    "status": 200,
+    "productos": 1
+  },
+  "compatibilidadBson": {
+    "insertado": true,
+    "hook": true,
+    "virtual": true,
+    "base": "apdaf_u2_playground_test",
+    "conteosDespues": {
+      "resenas": 3,
+      "reportes": 2
+    }
+  },
+  "fallosArranque": [
+    {
+      "caso": "MongoDB no disponible",
+      "salida": 1,
+      "listen": false
+    },
+    {
+      "caso": "PostgreSQL no disponible",
+      "salida": 1,
+      "listen": false
+    }
+  ]
+}
